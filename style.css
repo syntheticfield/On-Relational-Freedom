@@ -904,3 +904,46 @@ button {
 #view-home {
   padding-bottom: calc(8vh + 56px);
 }
+
+/* FIX PLAY MOBILE — visibilité forcée */
+#view-play.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 60 !important;
+  transform: none !important;
+}
+
+.play-screen {
+  position: relative;
+  z-index: 2;
+}
+
+.play-context,
+.play-question,
+.play-options,
+.play-option {
+  position: relative;
+  z-index: 3;
+  visibility: visible !important;
+}
+
+.play-question {
+  color: var(--ink) !important;
+  opacity: 1 !important;
+}
+
+.play-typed {
+  color: var(--ink) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.play-options.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.play-option {
+  color: var(--ink) !important;
+  background: var(--paper-2) !important;
+}

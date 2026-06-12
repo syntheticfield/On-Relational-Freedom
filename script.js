@@ -349,7 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function typeWrite(text, el, onDone) {
     if (typeTimer) clearTimeout(typeTimer);
-    el.innerHTML = '<span class="play-typed"></span><span class="play-cursor">▌</span>';
+    el.innerHTML = '<span class="play-typed" style="color:var(--ink);opacity:1;"></span><span class="play-cursor">▌</span>';
     const typedEl = el.querySelector(".play-typed");
     let i = 0;
     function step() {
