@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>On Freedom — édition</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     STRUCTURE GÉNÉRALE
+     - 3 "vues" principales : home / mindmap / cards
+       (une seule visible à la fois, classe .active)
+     - 1 overlay de détail (.detail-panel) qui s'ouvre par dessus
+       pour afficher une carte ou une notion
+     - 1 fil d'ariane discret (.trail) pour la navigation récursive
+     ============================================================ -->
+
+<div class="app">
+
+  <!-- petite trame de fond en pointillés, purement décorative -->
+  <div class="texture" aria-hidden="true"></div>
+
+  <!-- ============ VUE 1 : ACCUEIL ============ -->
+  <section id="view-home" class="view active">
+    <div class="home-inner">
+      <h1 class="title">ON<br><span class="title-sub">(RELATIONAL)</span><br>FREEDOM</h1>
+
+      <p class="intro">
+        This publication is part of a collective research project surrounding the concept of
+        relational freedom. This notion emphasizes that freedom is always situated within a
+        network of social, political, economic, and ecological relations. It can only exist if the
+        conditions that enable one to act also exist for others. Multiple issues revolve around
+        this core: forms of community, power structures, artistic practices, and alternative
+        modes of organization. This project seeks to open a space for reflection and exchange
+        between texts, concepts, and experiences. The research method was built around the
+        diagram. This allowed us to think differently: in a non-linear way, by establishing
+        connections and tensions between ideas. Here, the diagram functions as a tool for
+        navigation as much as a tool for thought. It is a way of making relationships visible
+        rather than imposing a single interpretation. This research extends into the very form
+        of the publication itself, consisting of a large "big map" diagram, accompanied by a set
+        of cards. The big map functions as a visual library, a mapping of references. The cards
+        bring this library to life. Each one is dedicated to a specific text and offers a
+        contextualized reading: on the front, a diagram summarizes the key concepts and issues
+        addressed; on the back, a summary elaborates on the main themes.
+      </p>
+
+      <nav class="home-nav">
+        <button class="nav-card" data-goto="mindmap">big map</button>
+        <button class="nav-card" data-goto="cards">cards</button>
+      </nav>
+    </div>
+  </section>
+
+
+  <!-- ============ VUE 2 : LA GRANDE MIND MAP ============ -->
+  <section id="view-mindmap" class="view">
+    <header class="view-header">
+      <button class="back-btn" data-goto="home" aria-label="Retour à l'accueil">←</button>
+      <div class="zoom-controls">
+        <button class="zoom-btn" id="zoom-out" aria-label="Dézoomer">–</button>
+        <button class="zoom-btn" id="zoom-in" aria-label="Zoomer">+</button>
+      </div>
+      <button class="reset-btn" id="mindmap-reset" aria-label="Recentrer">⊙</button>
+    </header>
+
+    <!-- Conteneur pan/zoom -->
+    <div class="mindmap-viewport" id="mindmap-viewport">
+      <div class="mindmap-stage" id="mindmap-stage">
+
+        <!-- ====== IMAGE DE LA BIG MAP ====== -->
+        <img src="assets/images/mindmap/big-map.png"
+             alt="Grande carte de l'édition On Freedom"
+             id="mindmap-image"
+             draggable="false">
+      </div>
+    </div>
+
+    <!-- ====== LISTE DES TEXTES (sous la big map) ====== -->
+    <div class="texts-list" id="texts-list">
+      <h2 class="texts-list-title">Textes</h2>
+      <ul id="texts-list-ul"></ul>
+    </div>
+  </section>
+
+
+  <!-- ============ VUE 3 : CONSTELLATION DE CARTES ============ -->
+  <!-- La grille est générée par script.js à partir de data.js -->
+  <section id="view-cards" class="view">
+    <header class="view-header">
+      <button class="back-btn" data-goto="home" aria-label="Retour à l'accueil">←</button>
+      <span class="spacer"></span>
+      <span class="spacer"></span>
+    </header>
+
+    <div class="cards-grid" id="cards-grid"></div>
+  </section>
+
+</div>
+
+<script src="assets/data.js"></script>
+<script src="data-sources.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
