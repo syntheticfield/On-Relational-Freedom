@@ -27,7 +27,7 @@
     <div class="home-inner">
       <h1 class="title">ON<br><span class="title-sub">(RELATIONAL)</span><br>FREEDOM</h1>
 
-      <p class="intro">
+      <p class="intro intro--clamped" id="intro-text">
         This publication is part of a collective research project surrounding the concept of
         relational freedom. This notion emphasizes that freedom is always situated within a
         network of social, political, economic, and ecological relations. It can only exist if the
@@ -45,11 +45,7 @@
         contextualized reading: on the front, a diagram summarizes the key concepts and issues
         addressed; on the back, a summary elaborates on the main themes.
       </p>
-
-      <nav class="home-nav">
-        <button class="nav-card" data-goto="mindmap">big map</button>
-        <button class="nav-card" data-goto="cards">cards</button>
-      </nav>
+      <button class="intro-toggle" id="intro-toggle">+ lire le manifeste</button>
     </div>
   </section>
 
@@ -75,6 +71,7 @@
              id="mindmap-image"
              draggable="false">
       </div>
+      <div class="coord-readout" id="coord-readout">x: 00 · y: 00</div>
     </div>
 
     <!-- ====== LISTE DES TEXTES (sous la big map) ====== -->
@@ -97,10 +94,42 @@
     <div class="cards-grid" id="cards-grid"></div>
   </section>
 
+
+  <!-- ============ VUE 4 : PLAY (terminal de questions) ============ -->
+  <section id="view-play" class="view">
+    <header class="view-header">
+      <button class="back-btn" data-goto="home" aria-label="Retour à l'accueil">←</button>
+      <span class="play-trail" id="play-trail"></span>
+      <button class="reset-btn" id="play-restart" aria-label="Nouvelle dérive">⟲</button>
+    </header>
+
+    <div class="play-screen" id="play-screen">
+      <div class="play-context" id="play-context"></div>
+      <div class="play-question" id="play-question"><span class="play-cursor">▌</span></div>
+      <div class="play-options" id="play-options"></div>
+    </div>
+  </section>
+
 </div>
 
+<!-- ============ BARRE DE NAVIGATION FIXE ============ -->
+<nav class="tabbar" id="tabbar">
+  <button class="tabbar-item" data-goto="home" aria-label="Accueil">
+    <span class="tabbar-icon">⌂</span><span class="tabbar-label">home</span>
+  </button>
+  <button class="tabbar-item" data-goto="mindmap" aria-label="Big map">
+    <span class="tabbar-icon">⊞</span><span class="tabbar-label">map</span>
+  </button>
+  <button class="tabbar-item" data-goto="cards" aria-label="Cards">
+    <span class="tabbar-icon">▤</span><span class="tabbar-label">cards</span>
+  </button>
+  <button class="tabbar-item" data-goto="play" aria-label="Play">
+    <span class="tabbar-icon">▶</span><span class="tabbar-label">play</span>
+  </button>
+</nav>
+
 <script src="assets/data.js"></script>
-<script src="data-sources.js"></script>
+<script src="assets/data-sources.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
