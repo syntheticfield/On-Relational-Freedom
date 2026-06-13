@@ -25,9 +25,10 @@
   <!-- ============ VUE 1 : ACCUEIL ============ -->
   <section id="view-home" class="view active">
     <div class="home-inner">
-      <h1 class="title">ON<br><span class="title-sub">(RELATIONAL)</span><br>FREEDOM</h1>
+      <img class="title-image" src="assets/images/title-onfreedom.png" alt="On Freedom — Relational">
 
-      <p class="intro intro--clamped" id="intro-text">
+      <div class="home-content">
+      <p class="intro" id="intro-text">
         This publication is part of a collective research project surrounding the concept of
         relational freedom. This notion emphasizes that freedom is always situated within a
         network of social, political, economic, and ecological relations. It can only exist if the
@@ -45,7 +46,43 @@
         contextualized reading: on the front, a diagram summarizes the key concepts and issues
         addressed; on the back, a summary elaborates on the main themes.
       </p>
-      <button class="intro-toggle" id="intro-toggle">+ lire le manifeste</button>
+
+      <div class="colophon">
+        <ul class="colophon-names">
+          <li>Mathilde Gallet</li>
+          <li>Brandon Tong</li>
+          <li>Eli Bougeard</li>
+          <li>Anna Cambier</li>
+          <li>Joel Castro Ramos (Jofff@)</li>
+          <li>Steffie Chau</li>
+          <li>Eline Choffat</li>
+          <li>Loane Tran Colatruglio</li>
+          <li>Tristan Cubero</li>
+          <li>Clarence Egger</li>
+          <li>Lucie Landolt Pálvölgyi</li>
+          <li>Hugo Langlade</li>
+          <li>Hugo Lemahieu</li>
+          <li>Clara Locherer</li>
+          <li>Pavo Marinović</li>
+          <li>Julie Richard</li>
+          <li>Noemy Rubio Meau</li>
+          <li>Amanda Saavedra</li>
+          <li>Kirill Tscheluchin</li>
+        </ul>
+
+        <p class="colophon-line">Liberty, Freedom and Art under Late Capitalism</p>
+        <p class="colophon-line">Roxane Bovet</p>
+
+        <p class="colophon-line">Work Master HEAD-Genève</p>
+
+        <p class="colophon-line">Éditions Clinamen<br>2026<br>Numéro ISBN 978-2-940684-08-3</p>
+
+        <p class="colophon-line">Imprimé à Genève<br>par Bahnhofstrasse, Maud Bosset</p>
+
+        <p class="colophon-thanks">Un ÉNORME remerciement à toutexs les auteurixes qui nous ont
+        inspiré ce beau projet et spécialement à Roxane pour la délicieuse cuisine.</p>
+      </div>
+      </div>
     </div>
   </section>
 
@@ -59,6 +96,7 @@
         <button class="zoom-btn" id="zoom-in" aria-label="Zoomer">+</button>
       </div>
       <button class="reset-btn" id="mindmap-reset" aria-label="Recentrer">⊙</button>
+      <button class="reset-btn" id="calibrate-btn" aria-label="Placer les points">📍</button>
     </header>
 
     <!-- Conteneur pan/zoom -->
@@ -66,7 +104,7 @@
       <div class="mindmap-stage" id="mindmap-stage">
 
         <!-- ====== IMAGE DE LA BIG MAP ====== -->
-        <img src="assets/images/mindmap/big-map.png"
+        <img src="assets/images/mindmap/big-map.jpg"
              alt="Grande carte de l'édition On Freedom"
              id="mindmap-image"
              draggable="false">
@@ -95,18 +133,32 @@
   </section>
 
 
-  <!-- ============ VUE 4 : PLAY (terminal de questions) ============ -->
+  <!-- ============ VUE 4 : PLAY — "How Free Are You?" ============ -->
   <section id="view-play" class="view">
     <header class="view-header">
       <button class="back-btn" data-goto="home" aria-label="Retour à l'accueil">←</button>
-      <span class="play-trail" id="play-trail"></span>
-      <button class="reset-btn" id="play-restart" aria-label="Nouvelle dérive">⟲</button>
+      <span class="spacer"></span>
+      <button class="reset-btn" id="freedom-replay" aria-label="Recommencer">↻</button>
     </header>
 
-    <div class="play-screen" id="play-screen">
-      <div class="play-context" id="play-context"></div>
-      <div class="play-question" id="play-question"><span class="play-cursor">▌</span></div>
-      <div class="play-options" id="play-options"></div>
+    <div id="freedom-stage">
+      <canvas id="freedom-canvas"></canvas>
+      <div id="freedom-prompt"></div>
+
+      <div id="freedom-intro">
+        <h2>How Free Are You?</h2>
+        <p>
+          Un territoire de concepts. Ils se déplacent, se rapprochent,
+          s'éloignent. Touchez ce qui vous attire — ou ce qui vous résiste.
+          Il n'y a rien à gagner.
+        </p>
+        <button id="freedom-start">entrer</button>
+      </div>
+
+      <div id="freedom-ending">
+        <svg id="freedom-constellation" viewBox="0 0 400 300"></svg>
+        <p id="freedom-sentence"></p>
+      </div>
     </div>
   </section>
 
@@ -131,5 +183,6 @@
 <script src="assets/data.js"></script>
 <script src="assets/data-sources.js"></script>
 <script src="script.js"></script>
+<script src="freedom.js"></script>
 </body>
 </html>

@@ -24,15 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   goto("home");
 
-  /* ---------------- ACCUEIL : déplier/replier le manifeste ---------------- */
-  const introText   = document.getElementById("intro-text");
-  const introToggle = document.getElementById("intro-toggle");
-  if (introText && introToggle) {
-    introToggle.addEventListener("click", () => {
-      const expanded = introText.classList.toggle("expanded");
-      introToggle.textContent = expanded ? "− réduire" : "+ lire le manifeste";
-    });
-  }
+  /* ---------------- ACCUEIL : texte intégral, plus de toggle ---------------- */
 
 
   /* ---------------- LISTE DES TEXTES (sous la big map) ---------------- */
@@ -43,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const src = (typeof SOURCES !== "undefined") ? SOURCES[id] : null;
       const li = document.createElement("li");
       li.className = "texts-list-item";
+      li.dataset.id = id;
       const href = src && src.pdf ? src.pdf : "#";
       li.innerHTML = `
         <a href="${href}" target="_blank" rel="noopener" class="texts-list-link">
@@ -52,6 +45,32 @@ document.addEventListener("DOMContentLoaded", () => {
         </a>
       `;
       if (!(src && src.pdf)) li.classList.add("texts-list-item--disabled");
+
+      // survol synchronisé : passer la souris sur une entrée de la liste
+      // surligne le point correspondant sur la big map, et inversement
+      const link = li.querySelector(".texts-list-link");
+      const syncOn  = () => {
+        li.classList.add("highlight");
+        const hs = document.querySelector(`.map-hotspot[data-id="${id}"]`);
+        if (hs) hs.classList.add("map-hotspot--highlight");
+      };
+      const syncOff = () => {
+        li.classList.remove("highlight");
+        const hs = document.querySelector(`.map-hotspot[data-id="${id}"]`);
+        if (hs) hs.classList.remove("map-hotspot--highlight");
+      };
+      link.addEventListener("pointerenter", syncOn);
+      link.addEventListener("pointerleave", syncOff);
+      link.addEventListener("focus", syncOn);
+      link.addEventListener("blur", syncOff);
+
+      // en mode calibration, cliquer une entrée la désigne comme "à placer"
+      link.addEventListener("click", (e) => {
+        if (!calibrateMode) return;
+        e.preventDefault();
+        setCalibrateTarget(id);
+      });
+
       textsListUl.appendChild(li);
     });
   }
@@ -89,34 +108,113 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ---------------- HOTSPOTS BIG MAP -> CARTES ---------------- */
-  // Coordonnées en % par rapport à l'image big-map (largeur/hauteur réelles).
-  // À AJUSTER : ouvrez assets/images/mindmap/big-map.png, repérez la position
-  // de chaque texte sur le diagramme, et indiquez top/left en %.
-  const CARD_HOTSPOTS = {
-    berlin:     { top: 10, left: 15 },
-    wittig:     { top: 10, left: 35 },
-    berardi:    { top: 10, left: 55 },
-    blanc:      { top: 10, left: 75 },
-    kropotkine: { top: 30, left: 15 },
-    lonzi:      { top: 30, left: 35 },
-    lorde:      { top: 30, left: 55 },
-    // ajouter ici les autres cartes (davis, morin, hayles, ...) au fur et à
-    // mesure que leurs positions sur la big map sont repérées
+  // Coordonnées en % par rapport à l'image big-map. Valeurs par défaut
+  // (provisoires) — utilisez le mode calibration (bouton 📍 dans l'en-tête
+  // de la big map) pour les repositionner précisément en cliquant
+  // directement sur votre image : les positions sont alors sauvegardées
+  // dans le navigateur (localStorage).
+  const DEFAULT_HOTSPOTS = {
+    // colonne haute / droite
+    lorde:      { top: 9.0, left: 89.5 },
+    wittig:     { top: 16.0, left: 84.0 },
+    hayles:     { top: 13.0, left: 41.0 },
+    newton:     { top: 20.0, left: 62.0 },
+    drucker:    { top: 26.0, left: 41.0 },
+    boss:       { top: 30.0, left: 23.0 },
+
+    // colonne droite (descendante)
+    berardi:    { top: 28.5, left: 69.5 },
+    davis:      { top: 31.5, left: 77.0 },
+    arendt:     { top: 35.0, left: 77.0 },
+    blanc:      { top: 38.5, left: 77.0 },
+    berlin:     { top: 44.0, left: 84.1 },
+    combahee:   { top: 47.5, left: 85.1 },
+    lonzi:      { top: 51.0, left: 85.1 },
+
+    // bas-gauche
+    guell:      { top: 56.0, left: 15.5 },
+    steyerl:    { top: 60.0, left: 45.5 },
+    bakunin:    { top: 62.0, left: 29.5 },
+    kropotkine: { top: 71.8, left: 56.5 },
+
+    // non identifié sur le diagramme fourni — placeholder, à ajuster avec 📍
+    morin:      { top: 76.6, left: 64.6 },
   };
 
+  const HOTSPOTS_KEY = "onfreedom_hotspot_positions";
+  function loadHotspotOverrides() {
+    try { return JSON.parse(localStorage.getItem(HOTSPOTS_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function saveHotspotOverrides(overrides) {
+    localStorage.setItem(HOTSPOTS_KEY, JSON.stringify(overrides));
+  }
+
+  const CARD_HOTSPOTS = { ...DEFAULT_HOTSPOTS, ...loadHotspotOverrides() };
+
   const mmStage = document.getElementById("mindmap-stage");
-  Object.entries(CARD_HOTSPOTS).forEach(([id, pos]) => {
-    if (!CARDS_DATA[id]) return;
-    const hotspot = document.createElement("button");
-    hotspot.className = "map-hotspot";
-    hotspot.dataset.id = id;
-    hotspot.style.top = pos.top + "%";
-    hotspot.style.left = pos.left + "%";
-    hotspot.setAttribute("aria-label", "Ouvrir la carte : " + CARDS_DATA[id].titre);
-    hotspot.title = CARDS_DATA[id].auteur + " — " + CARDS_DATA[id].titre;
-    hotspot.addEventListener("click", () => openCard(id));
-    mmStage.appendChild(hotspot);
-  });
+
+  function renderHotspots() {
+    mmStage.querySelectorAll(".map-hotspot").forEach(el => el.remove());
+    Object.entries(CARD_HOTSPOTS).forEach(([id, pos]) => {
+      if (!CARDS_DATA[id]) return;
+      const hotspot = document.createElement("button");
+      hotspot.className = "map-hotspot";
+      hotspot.dataset.id = id;
+      hotspot.style.top = pos.top + "%";
+      hotspot.style.left = pos.left + "%";
+      hotspot.setAttribute("aria-label", "Ouvrir la carte : " + CARDS_DATA[id].titre);
+      hotspot.title = CARDS_DATA[id].auteur + " — " + CARDS_DATA[id].titre;
+      hotspot.addEventListener("click", () => { if (!calibrateMode) openCard(id); });
+
+      // survol synchronisé : surligne l'entrée correspondante dans la liste
+      hotspot.addEventListener("pointerenter", () => {
+        const li = document.querySelector(`#texts-list-ul li[data-id="${id}"]`);
+        if (li) li.classList.add("highlight");
+      });
+      hotspot.addEventListener("pointerleave", () => {
+        const li = document.querySelector(`#texts-list-ul li[data-id="${id}"]`);
+        if (li) li.classList.remove("highlight");
+      });
+
+      mmStage.appendChild(hotspot);
+    });
+    // les marqueurs "déjà visité" (mémoire de chemin) passent sous les hotspots
+    getVisited().forEach(renderTrailDot);
+  }
+
+  /* ---------------- MODE CALIBRATION : placer les points sur la big map ---------------- */
+  const calibrateBtn = document.getElementById("calibrate-btn");
+  let calibrateMode = false;
+  let calibrateTargetId = null;
+
+  function setCalibrateTarget(id) {
+    calibrateTargetId = id;
+    document.querySelectorAll("#texts-list-ul li").forEach(li =>
+      li.classList.toggle("selected", li.dataset.id === id)
+    );
+    const c = CARDS_DATA[id];
+    coordReadout.textContent = `📍 placer : ${c.auteur} — ${c.titre}`;
+  }
+
+  function nextCalibrateTarget() {
+    const idx = CARDS.indexOf(calibrateTargetId);
+    const next = CARDS[(idx + 1) % CARDS.length];
+    setCalibrateTarget(next);
+  }
+
+  if (calibrateBtn) {
+    calibrateBtn.addEventListener("click", () => {
+      calibrateMode = !calibrateMode;
+      calibrateBtn.classList.toggle("active", calibrateMode);
+      if (calibrateMode) {
+        setCalibrateTarget(CARDS[0]);
+      } else {
+        document.querySelectorAll("#texts-list-ul li.selected").forEach(li => li.classList.remove("selected"));
+        coordReadout.textContent = "x: 00 · y: 00";
+      }
+    });
+  }
 
   function openCard(id) {
     markVisited(id);
@@ -248,7 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
       y = rect.height / 2 - stageY * scale;
       applyTransform();
       traceCardPath(pos, null, "in");
-      const hotspot = mmStage.querySelector(`.map-hotspot[data-id="${id}"]`);
+      const hotspot = document.querySelector(`.map-hotspot[data-id="${id}"]`);
       if (hotspot) {
         hotspot.classList.add("map-hotspot--highlight");
         setTimeout(() => hotspot.classList.remove("map-hotspot--highlight"), 1400);
@@ -256,219 +354,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ---------------- PLAY : dérive entre les questions des cartes ---------------- */
-  const playContext = document.getElementById("play-context");
-  const playQuestion = document.getElementById("play-question");
-  const playOptions  = document.getElementById("play-options");
-  const playTrail    = document.getElementById("play-trail");
-  const playRestart  = document.getElementById("play-restart");
-
-  let typeTimer = null;
-  const trailHistory = [];
-
-  function allQuestionsOf(id) {
-    const c = CARDS_DATA[id];
-    return (c && c.questions) ? c.questions : [];
-  }
-
-  // pioche une carte voisine qui partage spécifiquement la notion donnée
-  function pickCardByNotion(currentId, notion) {
-    const candidates = CARDS.filter(id2 =>
-      id2 !== currentId &&
-      allQuestionsOf(id2).length &&
-      (CARDS_DATA[id2].notions || []).includes(notion)
-    );
-    if (candidates.length) return candidates[Math.floor(Math.random() * candidates.length)];
-    return pickLinkedCard(currentId);
-  }
-
-  // repli générique : lien direct, ou carte au hasard
-  function pickLinkedCard(currentId) {
-    const c = CARDS_DATA[currentId];
-    if (!c) return currentId;
-    const liens = (c.liens || []).filter(l => CARDS_DATA[l] && allQuestionsOf(l).length);
-    if (liens.length) return liens[Math.floor(Math.random() * liens.length)];
-    const pool = CARDS.filter(id2 => id2 !== currentId && allQuestionsOf(id2).length);
-    return pool[Math.floor(Math.random() * pool.length)] || currentId;
-  }
-
-  function shuffle(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  // une ligne par notion : la direction conceptuelle vers laquelle on glisse
-  // en quittant ce texte — écrit pour ce projet, pas extrait des textes sources
-  const NOTION_DRIFT = {
-    "liberte-relationnelle": "la liberté circule, elle ne se possède pas.",
-    "individu-collectif": "le je se dissout dans un nous incertain.",
-    "pouvoir-autorite": "quelque chose commande encore, ailleurs, sous un autre nom.",
-    "ordre-chaos": "l'ordre se défait, une forme nouvelle s'esquisse.",
-    "pratique-accomplissement": "ce n'est jamais fini, ça recommence autrement.",
-    "oppression": "le poids se déplace, il ne disparaît pas.",
-    "solidarite": "des mains se rejoignent, ailleurs, sans le savoir.",
-    "revolution": "le sol bascule, doucement, puis tout à coup.",
-    "corps-collectif": "un souffle commun traverse plusieurs poitrines.",
-    "ecriture-diagramme": "les mots se redessinent sur une page blanche.",
-    "nature-systeme": "tout est relié, même ce qui semblait seul.",
-    "identite": "qui parle, ici, et au nom de qui.",
-  };
-
-  // libellés courts affichés sur les boutons, dans l'esprit des noms de
-  // notions de la big map — un par notion
-  const NOTION_LABEL = {
-    "liberte-relationnelle": "liberté relationnelle",
-    "individu-collectif": "individu / collectif",
-    "pouvoir-autorite": "pouvoir, autorité",
-    "ordre-chaos": "ordre, chaos",
-    "pratique-accomplissement": "pratique, accomplissement",
-    "oppression": "oppression",
-    "solidarite": "solidarité",
-    "revolution": "révolution",
-    "corps-collectif": "corps collectif",
-    "ecriture-diagramme": "écriture, diagramme",
-    "nature-systeme": "nature, système",
-    "identite": "identité",
-  };
-
-  // phrases de repli quand aucune notion n'est disponible
-  const DRIFT_PHRASES = [
-    "quelque chose se déplace, encore tiède.",
-    "la pensée change de support.",
-    "un autre fil se tend, ailleurs.",
-    "ceci aussi pensait, à sa manière.",
-    "la question migre, sans bagage.",
-    "un courant traverse le papier.",
-    "ça continue, sous une autre forme.",
-    "la trace reste, le corps change.",
-  ];
-
-  function typeWrite(text, el, onDone) {
-    if (typeTimer) clearTimeout(typeTimer);
-    el.innerHTML = '<span class="play-typed" style="color:var(--ink);opacity:1;"></span><span class="play-cursor">▌</span>';
-    const typedEl = el.querySelector(".play-typed");
-    let i = 0;
-    function step() {
-      typedEl.textContent = text.slice(0, i + 1);
-      i++;
-      if (i < text.length) {
-        // rythme irrégulier, plus lent : ~55ms en moyenne, pauses sur la ponctuation
-        const c = text[i - 1];
-        let delay = 48 + Math.random() * 40;
-        if (",;—".includes(c)) delay += 220;
-        if (".?!".includes(c)) delay += 420;
-        typeTimer = setTimeout(step, delay);
-      } else if (onDone) {
-        onDone();
-      }
-    }
-    step();
-  }
-
-  function showQuestion(cardId, qIndex) {
-    const c = CARDS_DATA[cardId];
-    const question = c.questions[qIndex];
-
-    trailHistory.push(cardId);
-    if (trailHistory.length > 6) trailHistory.shift();
-    playTrail.textContent = trailHistory.join(" → ");
-
-    playContext.textContent = `${c.auteur} — ${c.titre}`;
-    playOptions.classList.remove("visible");
-    playOptions.innerHTML = "";
-
-    typeWrite(question, playQuestion, () => {
-      // jusqu'à 3 directions conceptuelles, tirées des notions propres à
-      // CE texte — donc différentes selon la carte d'où provient la question
-      const notions = shuffle(c.notions || []).slice(0, 3);
-
-      const options = notions.map(notion => ({
-        label: NOTION_LABEL[notion] || notion,
-        action: () => driftByNotion(cardId, notion)
-      }));
-
-      // repli si une carte n'a aucune notion renseignée
-      if (!options.length) {
-        options.push({ label: "ailleurs", action: () => driftGeneric(cardId) });
-      }
-
-      options.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = "play-option";
-        btn.innerHTML = `<span class="play-option-key">→</span><span>${opt.label}</span>`;
-        btn.addEventListener("click", opt.action);
-        playOptions.appendChild(btn);
-      });
-      playOptions.classList.add("visible");
-    });
-  }
-
-  // glisse vers un texte qui partage la notion choisie ; la phrase de
-  // transition évoque cette notion précise
-  function driftByNotion(cardId, notion) {
-    playOptions.classList.remove("visible");
-    const nextCard = pickCardByNotion(cardId, notion);
-    const phrase = NOTION_DRIFT[notion] || DRIFT_PHRASES[Math.floor(Math.random() * DRIFT_PHRASES.length)];
-    playContext.textContent = "";
-    typeWrite(phrase, playQuestion, () => {
-      const qs = allQuestionsOf(nextCard);
-      const nextQ = Math.floor(Math.random() * qs.length);
-      setTimeout(() => showQuestion(nextCard, nextQ), 900);
-    });
-  }
-
-  // repli générique, sans notion identifiée
-  function driftGeneric(cardId) {
-    playOptions.classList.remove("visible");
-    const nextCard = pickLinkedCard(cardId);
-    const phrase = DRIFT_PHRASES[Math.floor(Math.random() * DRIFT_PHRASES.length)];
-    playContext.textContent = "";
-    typeWrite(phrase, playQuestion, () => {
-      const qs = allQuestionsOf(nextCard);
-      const nextQ = Math.floor(Math.random() * qs.length);
-      setTimeout(() => showQuestion(nextCard, nextQ), 900);
-    });
-  }
-
-  function startGame() {
-    trailHistory.length = 0;
-    const pool = CARDS.filter(id => allQuestionsOf(id).length);
-    const startId = pool[Math.floor(Math.random() * pool.length)];
-    const qs = allQuestionsOf(startId);
-    showQuestion(startId, Math.floor(Math.random() * qs.length));
-  }
-
-  if (playRestart) playRestart.addEventListener("click", startGame);
-
-  // démarre une dérive la première fois qu'on ouvre l'onglet play
-  let playStarted = false;
-  document.querySelector('[data-goto="play"]').addEventListener("click", () => {
-    if (!playStarted && typeof CARDS !== "undefined") {
-      playStarted = true;
-      startGame();
-    }
-  });
-
 
   const grid = document.getElementById("cards-grid");
-
-  // texte source (résumé + lien vers le pdf) pour le 2e volet de chaque carte
-  const FALLBACK_SOURCE = `
-    <p class="flip-back-resume">Le texte source de cette carte n'est pas encore disponible.</p>
-  `;
 
   CARDS.forEach((id, i) => {
     const c = CARDS_DATA[id];
     const questionsHtml = c.questions.map(q => `<li>${q}</li>`).join("");
-    const src = (typeof SOURCES !== "undefined" && SOURCES[id]) ? SOURCES[id] : null;
-    const sourceHtml = src ? src.summary : FALLBACK_SOURCE;
-    const pdfLinkHtml = src && src.pdf
-      ? `<p class="flip-back-resume"><a class="source-pdf-link" href="${src.pdf}" target="_blank" rel="noopener">→ Lire le texte source (PDF)</a></p>`
-      : "";
 
     const hasHotspot = !!CARD_HOTSPOTS[id];
     const backToMapHtml = hasHotspot
@@ -494,16 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           </div>
         </div>
-        <div class="card-panel">
-          <div class="source-text">
-            <p class="flip-back-author">${c.auteur} — texte source</p>
-            <h3 class="flip-back-title">${c.titre} <span style="color:var(--ink-soft); font-size:.7em;">(${c.annee})</span></h3>
-            ${sourceHtml}
-            ${pdfLinkHtml}
-          </div>
-        </div>
       </div>
-      <div class="card-dots"><span></span><span></span></div>
       <div class="card-footer">
         ${counterHtml}
         ${backToMapHtml}
@@ -539,6 +421,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   viewport.addEventListener("pointerdown", (e) => {
     if (e.target.closest(".map-hotspot")) return; // laisser le clic du hotspot passer
+
+    if (calibrateMode) {
+      const rect = viewport.getBoundingClientRect();
+      const stageX = (e.clientX - rect.left - x) / scale;
+      const stageY = (e.clientY - rect.top  - y) / scale;
+      const pctLeft = Math.max(0, Math.min(100, (stageX / STAGE_W) * 100));
+      const pctTop  = Math.max(0, Math.min(100, (stageY / (STAGE_W * 0.706)) * 100));
+      CARD_HOTSPOTS[calibrateTargetId] = { top: +pctTop.toFixed(1), left: +pctLeft.toFixed(1) };
+      const overrides = loadHotspotOverrides();
+      overrides[calibrateTargetId] = CARD_HOTSPOTS[calibrateTargetId];
+      saveHotspotOverrides(overrides);
+      renderHotspots();
+      nextCalibrateTarget();
+      return; // pas de pan en mode calibration
+    }
+
     viewport.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     viewport.classList.add("grabbing");
@@ -591,6 +489,8 @@ document.addEventListener("DOMContentLoaded", () => {
       applyTransform();
     }
   }, { passive: false });
+
+  renderHotspots();
 
   const mmImage = document.getElementById("mindmap-image");
   if (mmImage.complete) resetView();
