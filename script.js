@@ -592,6 +592,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("hotspot-prev")?.addEventListener("click", () => goToHotspot(currentHotspotIndex - 1));
   document.getElementById("hotspot-next")?.addEventListener("click", () => goToHotspot(currentHotspotIndex + 1));
+  document.getElementById("sidebar-prev")?.addEventListener("click", () => goToHotspot(currentHotspotIndex - 1));
+  document.getElementById("sidebar-next")?.addEventListener("click", () => goToHotspot(currentHotspotIndex + 1));
 
   // ---- navigation clavier sur la big map ----
   document.addEventListener("keydown", (e) => {
@@ -622,29 +624,31 @@ document.addEventListener("DOMContentLoaded", () => {
   resetView();
 
   /* ---------------- BOUTON AUDIO DESCRIPTION ---------------- */
-  // Pour activer : déposer le fichier dans assets/audio/description.mp3
   const audioBtn = document.getElementById("audio-btn");
+  const sidebarAudio = document.getElementById("sidebar-audio");
   let audioPlayer = null;
 
-  if (audioBtn) {
-    audioBtn.addEventListener("click", () => {
-      if (audioBtn.classList.contains("playing")) {
-        audioPlayer.pause();
-        audioPlayer.currentTime = 0;
+  function toggleAudio(btn) {
+    const allBtns = [audioBtn, sidebarAudio].filter(Boolean);
+    if (btn.classList.contains("playing")) {
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
+      audioPlayer = null;
+      allBtns.forEach(b => b.classList.remove("playing"));
+    } else {
+      audioPlayer = new Audio("assets/audio/description.mp3");
+      audioPlayer.addEventListener("ended", () => {
+        allBtns.forEach(b => b.classList.remove("playing"));
         audioPlayer = null;
-        audioBtn.classList.remove("playing");
-      } else {
-        audioPlayer = new Audio("assets/audio/description.mp3");
-        audioPlayer.addEventListener("ended", () => {
-          audioBtn.classList.remove("playing");
-          audioPlayer = null;
-        });
-        audioPlayer.play().catch(() => {
-          console.info("Audio non disponible — déposez le fichier dans assets/audio/description.mp3");
-        });
-        audioBtn.classList.add("playing");
-      }
-    });
+      });
+      audioPlayer.play().catch(() => {
+        console.info("Audio non disponible — déposez le fichier dans assets/audio/description.mp3");
+      });
+      allBtns.forEach(b => b.classList.add("playing"));
+    }
   }
+
+  audioBtn?.addEventListener("click", () => toggleAudio(audioBtn));
+  sidebarAudio?.addEventListener("click", () => toggleAudio(sidebarAudio));
 
 });
