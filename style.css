@@ -141,6 +141,20 @@ button {
   flex: 1;
 }
 
+/* phrase d'intro numérique — légèrement distincte du corps */
+.intro-digital {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .03em;
+  color: var(--ink-soft);
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+  margin-bottom: 1.4em;
+  line-height: 1.7;
+  text-align: left;
+}
+
 .colophon {
   display: flex;
   flex-direction: column;
@@ -153,6 +167,34 @@ button {
   text-align: center;
   padding-top: 18px;
   border-top: 1px solid var(--line);
+}
+
+/* liste des noms — plus d'espace sur mobile */
+.colophon-names {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* séparateur asterisques — évoque le passage imprimé → numérique */
+.colophon-separator {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 0;
+  opacity: .35;
+  letter-spacing: .12em;
+}
+
+/* note version numérique */
+.colophon-digital-note {
+  font-style: italic;
+  letter-spacing: .08em;
+  opacity: .6;
 }
 
 @media (min-width: 900px) {
@@ -181,15 +223,6 @@ button {
   .colophon-names {
     align-items: flex-start;
   }
-}
-
-.colophon-names {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
 }
 
 .colophon-line {
@@ -837,32 +870,110 @@ button {
   padding-bottom: calc(8vh + 56px);
 }
 
-/* bouton audio description */
-.audio-btn {
-  width: 36px;
-  height: 36px;
+/* ============================================================
+   MIND MAP HEADER — barre de contrôles compacte
+   ============================================================ */
+.mindmap-header {
+  justify-content: center;
+  gap: 0;
+  padding: 10px 16px;
+  position: relative;
+}
+
+/* flèche retour cachée sur mobile, visible sur desktop */
+.mindmap-back-desktop {
+  display: none;
+}
+
+.mindmap-header-spacer {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mindmap-back-desktop {
+    display: flex;
+    position: absolute;
+    left: 16px;
+  }
+  .mindmap-header-spacer {
+    display: block;
+    width: 36px;
+  }
+}
+
+/* audio bouton — coin droit absolu */
+.map-audio-btn {
+  position: absolute;
+  right: 16px;
+}
+
+/* pilule centrale groupant tous les contrôles */
+.mindmap-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 6px;
+  box-shadow: 0 1px 6px rgba(46,51,166,.07);
+}
+
+.map-ctrl-btn {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 50%;
+  font-size: 17px;
+  font-family: var(--mono);
   color: var(--ink);
-  transition: background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+  border-radius: 50%;
+  border: none;
+  background: none;
+  transition: background .15s var(--ease), color .15s var(--ease);
+  cursor: pointer;
   flex-shrink: 0;
 }
 
-.audio-btn:active,
-.audio-btn.playing {
+.map-ctrl-btn:active,
+.map-ctrl-btn.playing {
+  background: var(--accent);
+  color: var(--paper-2);
+}
+
+/* bouton audio séparé — même look que la pilule mais isolé */
+.map-audio-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink);
+  box-shadow: 0 1px 6px rgba(46,51,166,.07);
+  transition: background .15s var(--ease), color .15s var(--ease);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.map-audio-btn:active,
+.map-audio-btn.playing {
   background: var(--accent);
   color: var(--paper-2);
   border-color: var(--accent);
 }
-
-.audio-btn.playing svg path:last-child {
-  animation: audio-pulse 1.2s ease-in-out infinite alternate;
+.map-ctrl-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--line);
+  margin: 0 3px;
+  flex-shrink: 0;
 }
 
-@keyframes audio-pulse {
-  from { opacity: .2; }
-  to   { opacity: .9; }
+/* icône vue d'ensemble légèrement plus petite */
+.map-ctrl-reset svg {
+  display: block;
 }

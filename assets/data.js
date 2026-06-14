@@ -96,8 +96,8 @@ const CARDS_DATA = {
 
   bakunin: {
     id: "bakunin",
-    auteur: "Michel Bakounine",
-    titre: "Catéchisme révolutionnaire",
+    auteur: "Mikhaïl Bakunin",
+    titre: "The Revolutionary Catechism",
     annee: "1866",
     motsClefs: ["Liberté collective", "Anti-autoritarisme", "Éducation", "Organisation par le bas"],
     image: "assets/images/cards/bakunin.png",
@@ -113,7 +113,7 @@ const CARDS_DATA = {
   kropotkine: {
     id: "kropotkine",
     auteur: "Pierre Kropotkine",
-    titre: "La Morale anarchiste",
+    titre: "Anarchist Morality",
     annee: "1889",
     motsClefs: ["Jeunesse", "Morale", "Éducation", "Instinct"],
     image: "assets/images/cards/kropotkine.png",
@@ -128,7 +128,7 @@ const CARDS_DATA = {
   blanc: {
     id: "blanc",
     auteur: "Johana Blanc",
-    titre: "Les Déserteur·euses",
+    titre: "The Deserters",
     annee: "2023",
     motsClefs: ["Art", "Collectif", "Ego", "Féminisme"],
     image: "assets/images/cards/blanc.png",
@@ -145,7 +145,7 @@ const CARDS_DATA = {
   berlin: {
     id: "berlin",
     auteur: "Isaiah Berlin",
-    titre: "Deux conceptions de la liberté",
+    titre: "Two Concepts of Liberty",
     annee: "1958",
     motsClefs: ["Individualisme", "Autonomie", "Autorité", "Oppression"],
     image: "assets/images/cards/berlin.png",
@@ -177,7 +177,7 @@ const CARDS_DATA = {
   steyerl: {
     id: "steyerl",
     auteur: "Hito Steyerl",
-    titre: "Free Lance — la liberté de tout perdre",
+    titre: "Freedom from Everything: Freelancers and Mercenaries",
     annee: "2010",
     motsClefs: ["Liberté négative", "Freelance / Mercenaire", "Dérégulation", "Ville globale"],
     image: "assets/images/cards/steyerl.png",
@@ -193,7 +193,7 @@ const CARDS_DATA = {
   berardi: {
     id: "berardi",
     auteur: "Franco \"Bifo\" Berardi",
-    titre: "La poésie peut-elle sauver le monde ?",
+    titre: "Can Poetry Save the World?",
     annee: "2019",
     motsClefs: ["Poésie", "Abstraction financière", "Corps collectif", "Résistance"],
     image: "assets/images/cards/berardi.png",
@@ -209,7 +209,7 @@ const CARDS_DATA = {
   lorde: {
     id: "lorde",
     auteur: "Audre Lorde",
-    titre: "La poésie n'est pas un luxe",
+    titre: "Poetry Is Not a Luxury",
     annee: "1985",
     motsClefs: ["Nécessité", "Action", "Résistance", "Survie"],
     image: "assets/images/cards/lorde.png",
@@ -239,7 +239,7 @@ const CARDS_DATA = {
   wittig: {
     id: "wittig",
     auteur: "Monique Wittig",
-    titre: "Le Cheval de Troie",
+    titre: "The Trojan Horse",
     annee: "1984",
     motsClefs: ["Cheval de Troie", "Littérature", "Langage", "Histoire"],
     image: "assets/images/cards/wittig.png",
@@ -254,7 +254,7 @@ const CARDS_DATA = {
   guell: {
     id: "guell",
     auteur: "Núria Güell",
-    titre: "Comment exproprier de l'argent aux banques",
+    titre: "How to Expropriate Money from Banks",
     annee: "2013",
     motsClefs: ["Économie", "Crime", "Humour", "Absurde"],
     image: "assets/images/cards/guell.png",
@@ -270,7 +270,7 @@ const CARDS_DATA = {
   boss: {
     id: "boss",
     auteur: "Gilbert Boss",
-    titre: "Manifeste de l'individualisme",
+    titre: "Manifesto of Individualism",
     annee: "2006",
     motsClefs: ["Égoïsme", "Individualisme", "Autonomie", "Société"],
     image: "assets/images/cards/boss.png",
@@ -286,8 +286,8 @@ const CARDS_DATA = {
   davis: {
     id: "davis",
     auteur: "Angela Y. Davis",
-    titre: "La liberté est une lutte constante",
-    annee: "2016",
+    titre: "Freedom Is a Constant Struggle",
+    annee: "2015",
     motsClefs: ["Émancipation", "Lutte", "Radical", "Injustice"],
     image: "assets/images/cards/davis.png",
     questions: [
@@ -302,7 +302,7 @@ const CARDS_DATA = {
   hayles: {
     id: "hayles",
     auteur: "N. Katherine Hayles",
-    titre: "Lire et penser dans les environnements numériques",
+    titre: "Reading and Thinking in Digital Environments",
     annee: "2012",
     motsClefs: ["Pensée numérique", "Fragmentation", "Attention", "Technogenèse"],
     image: "assets/images/cards/hayles.png",
@@ -318,8 +318,8 @@ const CARDS_DATA = {
   arendt: {
     id: "arendt",
     auteur: "Hannah Arendt",
-    titre: "La liberté d'être libre",
-    annee: "fin des années 1960",
+    titre: "The Freedom to Be Free",
+    annee: "1960s",
     motsClefs: ["Révolution", "Lutte de classe", "Liberté matérielle", "Esclavage"],
     image: "assets/images/cards/arendt.png",
     questions: [
@@ -334,7 +334,7 @@ const CARDS_DATA = {
   lonzi: {
     id: "lonzi",
     auteur: "Carla Lonzi",
-    titre: "Crachons sur Hegel",
+    titre: "Let's Spit on Hegel",
     annee: "1970",
     motsClefs: ["Féminisme", "Liberté", "Communisme"],
     image: "assets/images/cards/lonzi.png",
@@ -349,7 +349,7 @@ const CARDS_DATA = {
   drucker: {
     id: "drucker",
     auteur: "Johanna Drucker",
-    titre: "Écriture diagrammatique",
+    titre: "Diagrammatic Writing",
     annee: "2013",
     motsClefs: ["Pensée diagrammatique", "Savoir visuel", "Non-linéarité"],
     image: "assets/images/cards/drucker.png",
@@ -366,8 +366,8 @@ const CARDS_DATA = {
   morin: {
     id: "morin",
     auteur: "Edgar Morin",
-    titre: "La Pensée complexe",
-    annee: "1990",
+    titre: "Complex Thought",
+    annee: "1982",
     motsClefs: ["Complexité", "Interdépendance", "Auto-organisation", "Émergence"],
     image: "assets/images/cards/morin.png",
     questions: [
@@ -380,9 +380,9 @@ const CARDS_DATA = {
 
 };
 
-/* Ordre d'affichage des cartes dans la vue "constellation" */
+/* Ordre d'affichage : du hotspot le plus haut au plus bas, de gauche à droite */
 const CARDS = [
-  "bakunin", "kropotkine", "blanc", "berlin", "combahee", "steyerl",
-  "berardi", "lorde", "newton", "wittig", "guell", "boss",
-  "davis", "hayles", "arendt", "lonzi", "drucker", "morin"
+  "lorde", "hayles", "wittig", "newton", "drucker", "berardi",
+  "boss", "davis", "arendt", "blanc", "berlin", "combahee",
+  "lonzi", "guell", "steyerl", "bakunin", "kropotkine", "morin"
 ];

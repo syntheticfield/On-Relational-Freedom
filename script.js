@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
       items.forEach((li, i) => li.classList.toggle("texts-list-item--nav-active", i === currentNavIndex));
       items[currentNavIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
       // zoom sur la big map si on y est
-      const activeId = items[currentNavIndex].dataset.id;
+      const activeId = CARDS[currentNavIndex];
       if (document.getElementById("view-mindmap").classList.contains("active")) {
         centerOnMap(activeId);
       }
@@ -200,19 +200,11 @@ document.addEventListener("DOMContentLoaded", () => {
     kropotkine: { top: 71.8, left: 56.5 },
 
     // non identifié sur le diagramme fourni — placeholder, à ajuster avec 📍
-    morin:      { top: 62.0, left: 63.0},
+    morin:      { top: 76.6, left: 64.6 },
   };
 
-  const HOTSPOTS_KEY = "onfreedom_hotspot_positions";
-  function loadHotspotOverrides() {
-    try { return JSON.parse(localStorage.getItem(HOTSPOTS_KEY)) || {}; }
-    catch { return {}; }
-  }
-  function saveHotspotOverrides(overrides) {
-    localStorage.setItem(HOTSPOTS_KEY, JSON.stringify(overrides));
-  }
+  const CARD_HOTSPOTS = { ...DEFAULT_HOTSPOTS };
 
-  const CARD_HOTSPOTS = { ...DEFAULT_HOTSPOTS, ...loadHotspotOverrides() };
 
   const mmStage = document.getElementById("mindmap-stage");
 
@@ -368,7 +360,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const stageY = (pos.top  / 100) * (STAGE_W * 0.706);
     requestAnimationFrame(() => {
       const rect = viewport.getBoundingClientRect();
-      scale = Math.max(scale, 1.1);
       x = rect.width  / 2 - stageX * scale;
       y = rect.height / 2 - stageY * scale;
       applyTransform();
