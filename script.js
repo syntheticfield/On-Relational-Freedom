@@ -352,7 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   getVisited().forEach(renderTrailDot);
 
-  function centerOnMap(id) {
+  function centerOnMap(id, silent = false) {
     const pos = CARD_HOTSPOTS[id];
     if (!pos) { goto("mindmap"); return; }
     goto("mindmap");
@@ -363,7 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
       x = rect.width  / 2 - stageX * scale;
       y = rect.height / 2 - stageY * scale;
       applyTransform();
-      traceCardPath(pos, null, "in");
+      if (!silent) traceCardPath(pos, null, "in");
       const hotspot = document.querySelector(`.map-hotspot[data-id="${id}"]`);
       if (hotspot) {
         hotspot.classList.add("map-hotspot--highlight");
@@ -495,25 +495,126 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderHotspots();
 
+  // trace une ligne pointillée animée d'un hotspot à l'autre dans le viewport
+  function traceHotspotPath(fromId, toId) {
+    const posFrom = CARD_HOTSPOTS[fromId];
+    const posTo   = CARD_HOTSPOTS[toId];
+    if (!posFrom || !posTo) return;
+
+    const rect = viewport.getBoundingClientRect();
+
+    // coordonnées écran des deux hotspots
+    const fx = x + (posFrom.left / 100) * STAGE_W * scale;
+    const fy = y + (posFrom.top  / 100) * (STAGE_W * 0.706) * scale;
+    const tx = x + (posTo.left   / 100) * STAGE_W * scale;
+    const ty = y + (posTo.top    / 100) * (STAGE_W * 0.706) * scale;
+
+    const dist = Math.hypot(tx - fx, ty - fy);
+    if (dist < 2) return;
+
+    const overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    overlay.setAttribute("class", "path-trace-overlay");
+    overlay.setAttribute("width", rect.width);
+    overlay.setAttribute("height", rect.height);
+
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", fx);
+    line.setAttribute("y1", fy);
+    line.setAttribute("x2", tx);
+    line.setAttribute("y2", ty);
+    line.setAttribute("class", "path-trace-line");
+    line.style.strokeDasharray = "4 6";
+    line.style.strokeDashoffset = dist;
+
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("cx", fx);
+    dot.setAttribute("cy", fy);
+    dot.setAttribute("r", 3);
+    dot.setAttribute("class", "path-trace-dot");
+
+    // petite flèche au bout
+    const angle = Math.atan2(ty - fy, tx - fx) * 180 / Math.PI;
+    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrow.setAttribute("d", `M${tx - 8} ${ty - 4} L${tx} ${ty} L${tx - 8} ${ty + 4}`);
+    arrow.setAttribute("fill", "none");
+    arrow.setAttribute("stroke", "#4750d6");
+    arrow.setAttribute("stroke-width", "1.5");
+    arrow.setAttribute("stroke-linecap", "round");
+    arrow.setAttribute("stroke-linejoin", "round");
+    arrow.setAttribute("transform", `rotate(${angle}, ${tx}, ${ty})`);
+    arrow.style.opacity = "0";
+
+    overlay.appendChild(line);
+    overlay.appendChild(dot);
+    overlay.appendChild(arrow);
+    viewport.appendChild(overlay);
+
+    const duration = Math.min(600, 180 + dist * 0.35);
+
+    requestAnimationFrame(() => {
+      line.style.transition = `stroke-dashoffset ${duration}ms linear`;
+      line.style.strokeDashoffset = "0";
+      dot.style.transition = `transform ${duration}ms linear`;
+      dot.style.transform = `translate(${tx - fx}px, ${ty - fy}px)`;
+      setTimeout(() => { arrow.style.transition = "opacity .15s"; arrow.style.opacity = "1"; }, duration - 80);
+    });
+
+    setTimeout(() => overlay.remove(), duration + 300);
+    return duration;
+  }
+
   // ---- flèches prev / next sur la big map (parcours des hotspots) ----
   const hotspotIds = CARDS.filter(id => !!CARD_HOTSPOTS[id]);
   let currentHotspotIndex = 0;
 
   function goToHotspot(idx) {
     if (!hotspotIds.length) return;
+    const fromId = hotspotIds[currentHotspotIndex];
     currentHotspotIndex = (idx + hotspotIds.length) % hotspotIds.length;
-    const id = hotspotIds[currentHotspotIndex];
-    centerOnMap(id);
-    // sync highlight dans la liste
+    const toId = hotspotIds[currentHotspotIndex];
+
+    // 1. dessiner la ligne AVANT de bouger la vue
+    const duration = traceHotspotPath(fromId, toId) || 0;
+
+    // 2. supprimer le tracé puis centrer la vue
+    setTimeout(() => {
+      document.querySelectorAll(".path-trace-overlay").forEach(el => el.remove());
+      centerOnMap(toId, true);
+    }, duration);
+
+    // sync liste immédiatement
     document.querySelectorAll("#texts-list-ul li").forEach(li => {
-      li.classList.toggle("texts-list-item--nav-active", li.dataset.id === id);
+      li.classList.toggle("texts-list-item--nav-active", li.dataset.id === toId);
     });
-    const activeLi = document.querySelector(`#texts-list-ul li[data-id="${id}"]`);
+    const activeLi = document.querySelector(`#texts-list-ul li[data-id="${toId}"]`);
     if (activeLi) activeLi.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   document.getElementById("hotspot-prev")?.addEventListener("click", () => goToHotspot(currentHotspotIndex - 1));
   document.getElementById("hotspot-next")?.addEventListener("click", () => goToHotspot(currentHotspotIndex + 1));
+
+  // ---- navigation clavier sur la big map ----
+  document.addEventListener("keydown", (e) => {
+    if (!document.getElementById("view-mindmap").classList.contains("active")) return;
+    switch (e.key) {
+      case "ArrowLeft":
+        e.preventDefault();
+        goToHotspot(currentHotspotIndex - 1);
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        goToHotspot(currentHotspotIndex + 1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        { const r = viewport.getBoundingClientRect(); zoomAt(1.15, r.width / 2, r.height / 2); }
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        { const r = viewport.getBoundingClientRect(); zoomAt(0.87, r.width / 2, r.height / 2); }
+        break;
+    }
+  });
 
   const mmImage = document.getElementById("mindmap-image");
   if (mmImage.complete) resetView();

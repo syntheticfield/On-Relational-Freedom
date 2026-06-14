@@ -126,6 +126,41 @@ button {
   height: auto;
 }
 
+/* bouton Explore */
+.explore-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 10px 18px;
+  background: transparent;
+  cursor: pointer;
+  transition: background .2s var(--ease), color .2s var(--ease);
+  align-self: flex-start;
+}
+
+.explore-btn:hover {
+  background: var(--accent);
+  color: var(--paper-2);
+}
+
+.explore-btn:active {
+  opacity: .85;
+}
+
+/* focus clavier visible sur les hotspots */
+.map-hotspot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  background: var(--accent);
+}
+
 .home-content {
   display: flex;
   flex-direction: column;
