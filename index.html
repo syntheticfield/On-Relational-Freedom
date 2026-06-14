@@ -95,27 +95,34 @@
         <button class="zoom-btn" id="zoom-out" aria-label="Dézoomer">–</button>
         <button class="zoom-btn" id="zoom-in" aria-label="Zoomer">+</button>
       </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" id="hotspot-prev" aria-label="Point précédent">‹</button>
+        <button class="zoom-btn" id="hotspot-next" aria-label="Point suivant">›</button>
+      </div>
       <button class="reset-btn" id="mindmap-reset" aria-label="Recentrer">⊙</button>
-      <button class="reset-btn" id="calibrate-btn" aria-label="Placer les points">📍</button>
     </header>
 
-    <!-- Conteneur pan/zoom -->
-    <div class="mindmap-viewport" id="mindmap-viewport">
-      <div class="mindmap-stage" id="mindmap-stage">
+    <!-- wrapper pour layout desktop côte à côte -->
+    <div class="mindmap-body">
 
-        <!-- ====== IMAGE DE LA BIG MAP ====== -->
-        <img src="assets/images/mindmap/big-map.jpg"
-             alt="Grande carte de l'édition On Freedom"
-             id="mindmap-image"
-             draggable="false">
+      <!-- ====== LISTE DES TEXTES (gauche sur desktop, bas sur mobile) ====== -->
+      <div class="texts-list" id="texts-list">
+        <h2 class="texts-list-title">Textes</h2>
+        <ul id="texts-list-ul"></ul>
       </div>
-      <div class="coord-readout" id="coord-readout">x: 00 · y: 00</div>
-    </div>
 
-    <!-- ====== LISTE DES TEXTES (sous la big map) ====== -->
-    <div class="texts-list" id="texts-list">
-      <h2 class="texts-list-title">Textes</h2>
-      <ul id="texts-list-ul"></ul>
+      <!-- Conteneur pan/zoom -->
+      <div class="mindmap-viewport" id="mindmap-viewport">
+        <div class="mindmap-stage" id="mindmap-stage">
+          <!-- ====== IMAGE DE LA BIG MAP ====== -->
+          <img src="assets/images/mindmap/big-map.jpg"
+               alt="Grande carte de l'édition On Freedom"
+               id="mindmap-image"
+               draggable="false">
+        </div>
+        <div class="coord-readout" id="coord-readout">x: 00 · y: 00</div>
+      </div>
+
     </div>
   </section>
 
@@ -133,34 +140,7 @@
   </section>
 
 
-  <!-- ============ VUE 4 : PLAY — "How Free Are You?" ============ -->
-  <section id="view-play" class="view">
-    <header class="view-header">
-      <button class="back-btn" data-goto="home" aria-label="Retour à l'accueil">←</button>
-      <span class="spacer"></span>
-      <button class="reset-btn" id="freedom-replay" aria-label="Recommencer">↻</button>
-    </header>
 
-    <div id="freedom-stage">
-      <canvas id="freedom-canvas"></canvas>
-      <div id="freedom-prompt"></div>
-
-      <div id="freedom-intro">
-        <h2>How Free Are You?</h2>
-        <p>
-          Un territoire de concepts. Ils se déplacent, se rapprochent,
-          s'éloignent. Touchez ce qui vous attire — ou ce qui vous résiste.
-          Il n'y a rien à gagner.
-        </p>
-        <button id="freedom-start">entrer</button>
-      </div>
-
-      <div id="freedom-ending">
-        <svg id="freedom-constellation" viewBox="0 0 400 300"></svg>
-        <p id="freedom-sentence"></p>
-      </div>
-    </div>
-  </section>
 
 </div>
 
@@ -175,14 +155,11 @@
   <button class="tabbar-item" data-goto="cards" aria-label="Cards">
     <span class="tabbar-icon">▤</span><span class="tabbar-label">cards</span>
   </button>
-  <button class="tabbar-item" data-goto="play" aria-label="Play">
-    <span class="tabbar-icon">▶</span><span class="tabbar-label">play</span>
-  </button>
+
 </nav>
 
 <script src="assets/data.js"></script>
 <script src="assets/data-sources.js"></script>
 <script src="script.js"></script>
-<script src="freedom.js"></script>
 </body>
 </html>

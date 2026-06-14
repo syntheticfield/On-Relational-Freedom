@@ -1,33 +1,26 @@
 /* ============================================================
    FREEDOM.JS — "How Free Are You?"
    ------------------------------------------------------------
-   Mini-jeu contemplatif intégré à l'onglet PLAY.
-   Pas de score, pas de bonne réponse : un territoire de concepts
-   qui se déplacent selon les choix, et qui se referme sur une
-   constellation d'auteur·ices + une phrase ambiguë.
+   Une question s'écrit au centre. Autour d'elle, quelques
+   directions de pensée apparaissent, reliées par de fines
+   lignes. Toucher une direction fait avancer — sans score,
+   sans bonne réponse. À la fin : une constellation d'auteur·ices
+   et une phrase ambiguë.
    ============================================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  const canvas = document.getElementById("freedom-canvas");
-  if (!canvas) return; // pas sur cette page
-  const ctx = canvas.getContext("2d");
-  const promptEl   = document.getElementById("freedom-prompt");
+  const stage     = document.getElementById("freedom-stage");
+  const questionEl = document.getElementById("freedom-question");
+  const branchesEl = document.getElementById("freedom-branches");
   const introEl    = document.getElementById("freedom-intro");
   const endingEl   = document.getElementById("freedom-ending");
   const sentenceEl = document.getElementById("freedom-sentence");
   const constellationEl = document.getElementById("freedom-constellation");
   const startBtn   = document.getElementById("freedom-start");
   const replayBtn  = document.getElementById("freedom-replay");
-  const playView   = document.getElementById("view-play");
 
-  let W, H;
-  function resize() {
-    const rect = playView.getBoundingClientRect();
-    W = canvas.width  = rect.width;
-    H = canvas.height = rect.height;
-  }
-  window.addEventListener("resize", resize);
+  if (!stage) return; // pas sur cette page
 
   /* ---------------- axes invisibles ---------------- */
   const AXES = [
@@ -44,218 +37,173 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /* ---------------- concepts flottants ---------------- */
-  const CONCEPTS = [
-    { id: "autonomie",      label: "AUTONOMIE",      w: { autonomie: 1 } },
-    { id: "communaute",     label: "COMMUNAUTÉ",     w: { appartenance: 1, solidarite: .5 } },
-    { id: "desir",          label: "DÉSIR",          w: { creativite: .6, autonomie: .4 } },
-    { id: "pouvoir",        label: "POUVOIR",        w: { controle: 1 } },
-    { id: "securite",       label: "SÉCURITÉ",       w: { securite: 1, controle: .3 } },
-    { id: "solidarite",     label: "SOLIDARITÉ",     w: { solidarite: 1 } },
-    { id: "responsabilite", label: "RESPONSABILITÉ", w: { responsabilite: 1 } },
-    { id: "surveillance",   label: "SURVEILLANCE",   w: { controle: .7, securite: .5 } },
-    { id: "soin",           label: "SOIN",           w: { solidarite: .6, responsabilite: .4 } },
-    { id: "conflit",        label: "CONFLIT",        w: { complexite: .5, controle: -.3 } },
-    { id: "isolement",      label: "ISOLEMENT",      w: { autonomie: .4, solidarite: -.6 } },
-    { id: "egalite",        label: "ÉGALITÉ",        w: { egalite: 1 } },
-    { id: "complexite",     label: "COMPLEXITÉ",     w: { complexite: 1 } },
-    { id: "creativite",     label: "CRÉATIVITÉ",     w: { creativite: 1 } },
-  ];
-
-  let nodes = [];
-  function initNodes() {
-    nodes = CONCEPTS.map((c, i) => ({
-      ...c,
-      angle: (i / CONCEPTS.length) * Math.PI * 2 + Math.random()*0.4,
-      baseRadius: 110 + Math.random() * 110,
-      drift: 0.00025 + Math.random() * 0.0006,
-      x: W/2, y: H/2,
-      size: 13, alpha: 0.35,
-    }));
-  }
-
-  function activity(node) {
-    let a = 0;
-    for (const k in node.w) a += node.w[k] * (axisValues[k] || 0);
-    return a;
-  }
-
-  /* ---------------- scènes ---------------- */
+  /* ---------------- questions et directions ---------------- */
   const scenes = [
     {
-      prompt: "Une société peut-elle avoir trop de liberté ?",
-      options: {
-        securite:       { autonomie: -0.6, securite: 1 },
-        autonomie:      { autonomie: 1, securite: -0.4 },
-        responsabilite: { responsabilite: 0.8, controle: -0.3 },
-        communaute:     { appartenance: 0.8, autonomie: -0.3 },
-      }
-    },
-    { prompt: null },
-    {
-      prompt: "Qui devrait décider de ce qui est acceptable ?",
-      options: {
-        pouvoir:    { controle: 1, autonomie: -0.5 },
-        communaute: { appartenance: 0.7, solidarite: 0.5, controle: -0.3 },
-        conflit:    { controle: -1, complexite: 0.6 },
-        autonomie:  { autonomie: 1, controle: -0.5 },
-      }
+      text: "Une société peut-elle avoir trop de liberté ?",
+      options: [
+        { label: "limiter certaines libertés",       d: { autonomie: -0.6, securite: 1 } },
+        { label: "ne jamais limiter une liberté",    d: { autonomie: 1, securite: -0.4 } },
+        { label: "renforcer l'autonomie individuelle", d: { autonomie: 0.8, responsabilite: 0.3 } },
+        { label: "renforcer la responsabilité collective", d: { responsabilite: 0.8, appartenance: 0.5 } },
+      ]
     },
     {
-      prompt: "Un voisin est en difficulté.",
-      options: {
-        soin:           { solidarite: 0.8, responsabilite: 0.6 },
-        responsabilite: { responsabilite: 1 },
-        isolement:      { solidarite: -0.8, autonomie: 0.3 },
-      }
-    },
-    { prompt: null },
-    {
-      prompt: "Un algorithme vous aide à décider.",
-      options: {
-        surveillance: { controle: 0.8, securite: 0.5, autonomie: -0.4 },
-        autonomie:    { autonomie: 0.8, controle: -0.4 },
-        complexite:   { complexite: 0.8 },
-      }
+      text: "Qui devrait décider de ce qui est acceptable ?",
+      options: [
+        { label: "l'individu",   d: { autonomie: 1, controle: -0.5 } },
+        { label: "la communauté", d: { appartenance: 0.7, solidarite: 0.5, controle: -0.3 } },
+        { label: "l'État",        d: { controle: 1, autonomie: -0.5 } },
+        { label: "personne",      d: { controle: -1, complexite: 0.6 } },
+      ]
     },
     {
-      prompt: "Le droit de vote n'est pas un toit.",
-      options: {
-        egalite:  { egalite: 0.8, securite: -0.3 },
-        securite: { securite: 0.8, egalite: -0.3 },
-        conflit:  { complexite: 0.6, egalite: -0.2, securite: -0.2 },
-      }
+      text: "Vous avez le droit de voter. Mais vous n'avez pas de logement. Êtes-vous libre ?",
+      options: [
+        { label: "oui, formellement",  d: { egalite: 0.4, securite: -0.4 } },
+        { label: "non, pas vraiment",  d: { egalite: -0.5, securite: 0.5 } },
+        { label: "la question est mal posée", d: { complexite: 0.8 } },
+      ]
     },
-    { prompt: null },
     {
-      prompt: "Les mots que vous employez vous emploient aussi.",
-      options: {
-        desir:      { creativite: 0.8, autonomie: 0.3 },
-        complexite: { complexite: 0.8 },
-        communaute: { appartenance: 0.5, solidarite: 0.5 },
-      }
+      text: "Un voisin est en difficulté. L'aidez-vous —",
+      options: [
+        { label: "par devoir",   d: { responsabilite: 1 } },
+        { label: "par empathie", d: { solidarite: 0.8, responsabilite: 0.4 } },
+        { label: "pas du tout",  d: { solidarite: -0.8, autonomie: 0.3 } },
+      ]
     },
-    { prompt: null },
+    {
+      text: "Un algorithme vous aide à prendre les meilleures décisions. Acceptez-vous son aide ?",
+      options: [
+        { label: "oui, je lui fais confiance", d: { securite: 0.6, controle: 0.6, autonomie: -0.4 } },
+        { label: "non, je préfère me tromper seul·e", d: { autonomie: 0.8, controle: -0.4 } },
+        { label: "ça dépend de qui l'a conçu", d: { complexite: 0.8, controle: -0.2 } },
+      ]
+    },
+    {
+      text: "Peut-on être libre lorsque son identité est imposée par les autres ?",
+      options: [
+        { label: "non", d: { autonomie: -0.6, controle: 0.4 } },
+        { label: "oui, intérieurement", d: { autonomie: 0.6, complexite: 0.4 } },
+        { label: "la liberté n'est pas qu'individuelle", d: { appartenance: 0.6, solidarite: 0.4 } },
+      ]
+    },
+    {
+      text: "Les mots que vous employez déterminent votre manière de penser. Changez-vous les mots —",
+      options: [
+        { label: "ou le monde ?", d: { creativite: 0.8, complexite: 0.4 } },
+        { label: "les deux à la fois", d: { creativite: 0.5, complexite: 0.5, appartenance: 0.3 } },
+        { label: "ni l'un ni l'autre", d: { autonomie: 0.3 } },
+      ]
+    },
+    {
+      text: "Si plus personne ne surveillait personne —",
+      options: [
+        { label: "la confiance grandirait", d: { solidarite: 0.7, controle: -0.7 } },
+        { label: "le chaos s'installerait", d: { controle: 0.6, complexite: 0.6 } },
+        { label: "rien ne changerait vraiment", d: { complexite: 0.3 } },
+      ]
+    },
   ];
 
   let sceneIndex = -1;
-  let currentScene = null;
-  let advanceTimer = null;
-  let running = false;
-  let rafId = null;
+  let typeTimer = null;
+  let advanceLock = false;
+
+  /* ---------------- machine à écrire ---------------- */
+  function typeWrite(text, onDone) {
+    if (typeTimer) clearTimeout(typeTimer);
+    questionEl.innerHTML = '<span class="freedom-typed"></span><span class="freedom-cursor">▌</span>';
+    const typedEl = questionEl.querySelector(".freedom-typed");
+    let i = 0;
+    function step() {
+      typedEl.textContent = text.slice(0, i + 1);
+      i++;
+      if (i < text.length) {
+        const c = text[i - 1];
+        let delay = 42 + Math.random() * 38;
+        if (",;—".includes(c)) delay += 200;
+        if (".?!".includes(c)) delay += 380;
+        typeTimer = setTimeout(step, delay);
+      } else if (onDone) {
+        setTimeout(onDone, 400);
+      }
+    }
+    step();
+  }
+
+  /* ---------------- disposition des directions ---------------- */
+  function clearBranches() {
+    branchesEl.innerHTML = "";
+    stage.querySelectorAll(".freedom-option").forEach(el => el.remove());
+  }
+
+  function layoutOptions(options) {
+    clearBranches();
+    const rect = stage.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const n = options.length;
+    const radius = Math.min(rect.width, rect.height) * 0.36;
+
+    options.forEach((opt, i) => {
+      // éventail sous la question, légèrement décalé
+      const spread = Math.PI * 0.62;
+      const start = Math.PI/2 - spread/2;
+      const angle = n === 1 ? Math.PI/2 : start + (spread * i) / (n - 1);
+      const x = cx + Math.cos(angle) * radius;
+      const y = cy + Math.sin(angle) * radius * 0.95;
+
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const midY = cy + (y - cy) * 0.4;
+      line.setAttribute("d", `M ${cx} ${cy} Q ${cx} ${midY} ${x} ${y}`);
+      line.setAttribute("class", "freedom-branch-line");
+      branchesEl.appendChild(line);
+
+      const btn = document.createElement("button");
+      btn.className = "freedom-option";
+      btn.style.left = x + "px";
+      btn.style.top = y + "px";
+      btn.textContent = opt.label;
+      btn.addEventListener("click", () => chooseOption(opt, line, btn));
+      stage.appendChild(btn);
+
+      requestAnimationFrame(() => {
+        line.classList.add("visible");
+        btn.classList.add("visible");
+      });
+    });
+  }
+
+  function chooseOption(opt, line, btn) {
+    if (advanceLock) return;
+    advanceLock = true;
+    applyDeltas(opt.d);
+
+    // referme discrètement les autres directions
+    stage.querySelectorAll(".freedom-option").forEach(el => {
+      if (el !== btn) el.classList.remove("visible");
+    });
+    branchesEl.querySelectorAll(".freedom-branch-line").forEach(el => {
+      if (el !== line) el.classList.remove("visible");
+    });
+    btn.style.color = "var(--accent)";
+    btn.style.borderColor = "var(--accent)";
+
+    setTimeout(() => {
+      clearBranches();
+      advanceLock = false;
+      nextScene();
+    }, 1100);
+  }
 
   function nextScene() {
-    if (advanceTimer) clearTimeout(advanceTimer);
     sceneIndex++;
     if (sceneIndex >= scenes.length) { endGame(); return; }
-    currentScene = scenes[sceneIndex];
-
-    if (currentScene.prompt) {
-      promptEl.textContent = currentScene.prompt;
-      promptEl.classList.add("visible");
-    } else {
-      promptEl.classList.remove("visible");
-    }
-
-    if (!currentScene.options) {
-      const idle = 9000 + Math.random() * 5000;
-      advanceTimer = setTimeout(() => {
-        promptEl.classList.remove("visible");
-        nextScene();
-      }, idle);
-    }
+    const scene = scenes[sceneIndex];
+    typeWrite(scene.text, () => layoutOptions(scene.options));
   }
-
-  function handleNodeClick(node) {
-    let deltas = null;
-    if (currentScene && currentScene.options && currentScene.options[node.id]) {
-      deltas = currentScene.options[node.id];
-    } else if (currentScene && !currentScene.options) {
-      deltas = {};
-      for (const k in node.w) deltas[k] = node.w[k] * 0.35;
-    } else {
-      return;
-    }
-
-    applyDeltas(deltas);
-
-    if (advanceTimer) clearTimeout(advanceTimer);
-    promptEl.classList.remove("visible");
-    advanceTimer = setTimeout(nextScene, 2600 + Math.random() * 1200);
-  }
-
-  /* ---------------- rendu ---------------- */
-  function step() {
-    const cx = W/2, cy = H/2;
-
-    for (const n of nodes) {
-      const a = activity(n);
-      const mag = Math.min(1, Math.abs(a) * 0.55);
-      n.size = 12 + mag * 30;
-      n.alpha = 0.3 + mag * 0.6;
-
-      const targetR = n.baseRadius * (1 - mag * 0.55);
-      n.angle += n.drift;
-      const dx = cx + Math.cos(n.angle) * targetR;
-      const dy = cy + Math.sin(n.angle) * targetR * 0.55;
-      n.x += (dx - n.x) * 0.012;
-      n.y += (dy - n.y) * 0.012;
-    }
-
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i+1; j < nodes.length; j++) {
-        const a = nodes[i], b = nodes[j];
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const dist = Math.hypot(dx, dy) || 1;
-        const minDist = (a.size + b.size) * 3.2;
-        if (dist < minDist) {
-          const push = (minDist - dist) * 0.02;
-          const ux = dx/dist, uy = dy/dist;
-          a.x -= ux*push; a.y -= uy*push;
-          b.x += ux*push; b.y += uy*push;
-        }
-      }
-    }
-
-    ctx.clearRect(0, 0, W, H);
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    for (const n of nodes) {
-      const highlighted = currentScene && currentScene.options && currentScene.options[n.id];
-      ctx.font = `${n.size}px "SF Mono","IBM Plex Mono","Courier New",monospace`;
-
-      if (highlighted) {
-        const w = ctx.measureText(n.label).width;
-        ctx.save();
-        ctx.strokeStyle = "rgba(71,80,214,0.35)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.ellipse(n.x, n.y, w/2 + 16, n.size/2 + 10, 0, 0, Math.PI*2);
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      ctx.fillStyle = `rgba(46,51,166,${n.alpha})`;
-      ctx.fillText(n.label, n.x, n.y);
-    }
-
-    if (running) rafId = requestAnimationFrame(step);
-  }
-
-  canvas.addEventListener("click", (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-    for (const n of nodes) {
-      ctx.font = `${n.size}px "SF Mono","IBM Plex Mono","Courier New",monospace`;
-      const w = ctx.measureText(n.label).width;
-      const h = n.size;
-      if (Math.abs(mx - n.x) < w/2 + 10 && Math.abs(my - n.y) < h/2 + 10) {
-        handleNodeClick(n);
-        break;
-      }
-    }
-  });
 
   /* ---------------- fin ---------------- */
   const AUTHORS = [
@@ -284,7 +232,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   function endGame() {
-    promptEl.classList.remove("visible");
+    clearBranches();
+    questionEl.innerHTML = "";
 
     let primary = AXES[0], primaryVal = 0;
     for (const a of AXES) {
@@ -351,34 +300,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------------- cycle de vie ---------------- */
   function startGame() {
-    resize();
     resetAxes();
-    initNodes();
+    clearBranches();
     sceneIndex = -1;
-    currentScene = null;
+    advanceLock = false;
     endingEl.classList.remove("visible");
     introEl.classList.add("hidden");
-    if (advanceTimer) clearTimeout(advanceTimer);
     nextScene();
-    if (!running) { running = true; step(); }
   }
 
   startBtn.addEventListener("click", startGame);
   replayBtn.addEventListener("click", startGame);
 
-  // (re)dimensionne et démarre la boucle de rendu (en pause sur l'écran
-  // d'intro) chaque fois qu'on arrive sur l'onglet play
-  document.querySelector('[data-goto="play"]').addEventListener("click", () => {
-    resize();
-    if (!running) { running = true; step(); }
-  });
-
-  // met en pause la boucle quand on quitte l'onglet play (économie de calcul)
-  document.querySelectorAll('[data-goto]:not([data-goto="play"])').forEach(btn => {
-    btn.addEventListener("click", () => {
-      running = false;
-      if (rafId) cancelAnimationFrame(rafId);
-    });
+  // redispose les directions si la fenêtre change de taille
+  window.addEventListener("resize", () => {
+    if (sceneIndex >= 0 && sceneIndex < scenes.length && !advanceLock) {
+      const scene = scenes[sceneIndex];
+      if (stage.querySelector(".freedom-option")) layoutOptions(scene.options);
+    }
   });
 
 });

@@ -33,21 +33,36 @@ document.addEventListener("DOMContentLoaded", () => {
     CARDS.forEach(id => {
       const c = CARDS_DATA[id];
       const src = (typeof SOURCES !== "undefined") ? SOURCES[id] : null;
+      const hasPdf = !!(src && src.pdf);
       const li = document.createElement("li");
       li.className = "texts-list-item";
       li.dataset.id = id;
-      const href = src && src.pdf ? src.pdf : "#";
+      const pdfIcon = hasPdf
+        ? `<span class="texts-list-pdf-icon" title="PDF disponible">
+             <svg width="13" height="16" viewBox="0 0 13 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+               <rect x=".5" y=".5" width="12" height="15" rx="1.5" stroke="currentColor"/>
+               <path d="M3 10.5h7M3 7.5h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+               <path d="M7.5 1v3.5H11" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+               <path d="M7.5 1l3.5 3.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+               <text x="2" y="14" font-size="4.5" font-family="monospace" fill="currentColor" font-weight="700">PDF</text>
+             </svg>
+           </span>`
+        : `<span class="texts-list-pdf-icon texts-list-pdf-icon--none" aria-hidden="true">
+             <svg width="13" height="16" viewBox="0 0 13 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+               <rect x=".5" y=".5" width="12" height="15" rx="1.5" stroke="currentColor" opacity=".2"/>
+             </svg>
+           </span>`;
       li.innerHTML = `
-        <a href="${href}" target="_blank" rel="noopener" class="texts-list-link">
-          <span class="texts-list-author">${c.auteur}</span>
-          <span class="texts-list-title-text">${c.titre}</span>
-          <span class="texts-list-year">${c.annee}</span>
-        </a>
+        <div class="texts-list-link">
+          ${pdfIcon}
+          <div class="texts-list-text-block">
+            <span class="texts-list-author">${c.auteur}</span>
+            <span class="texts-list-title-text">${c.titre}<span class="texts-list-year">, ${c.annee}</span></span>
+          </div>
+        </div>
       `;
-      if (!(src && src.pdf)) li.classList.add("texts-list-item--disabled");
 
-      // survol synchronisé : passer la souris sur une entrée de la liste
-      // surligne le point correspondant sur la big map, et inversement
+      // survol synchronisé
       const link = li.querySelector(".texts-list-link");
       const syncOn  = () => {
         li.classList.add("highlight");
@@ -64,15 +79,62 @@ document.addEventListener("DOMContentLoaded", () => {
       link.addEventListener("focus", syncOn);
       link.addEventListener("blur", syncOff);
 
-      // en mode calibration, cliquer une entrée la désigne comme "à placer"
+      // long press (≥ 450 ms) → zoom sur la carte dans la big map
+      // clic court → ouvrir le PDF si disponible
+      let pressTimer = null;
+      let pressTriggered = false;
+
+      link.addEventListener("pointerdown", () => {
+        pressTriggered = false;
+        pressTimer = setTimeout(() => {
+          pressTriggered = true;
+          centerOnMap(id);
+        }, 450);
+      });
+      link.addEventListener("pointerup", () => clearTimeout(pressTimer));
+      link.addEventListener("pointercancel", () => clearTimeout(pressTimer));
+      link.addEventListener("pointerleave", () => clearTimeout(pressTimer));
+
       link.addEventListener("click", (e) => {
-        if (!calibrateMode) return;
-        e.preventDefault();
-        setCalibrateTarget(id);
+        if (pressTriggered) { e.preventDefault(); return; }
+        if (hasPdf) {
+          window.open(src.pdf, "_blank", "noopener");
+        }
       });
 
       textsListUl.appendChild(li);
     });
+
+    // ---- flèches prev / next (navigation entre textes) ----
+    // On les injecte dans l'en-tête .texts-list-title
+    const textsListTitle = document.querySelector(".texts-list-title");
+    if (textsListTitle) {
+      textsListTitle.innerHTML = `
+        Textes
+        <span class="texts-list-nav">
+          <button class="texts-list-nav-btn" id="texts-nav-prev" aria-label="Texte précédent">&#8592;</button>
+          <button class="texts-list-nav-btn" id="texts-nav-next" aria-label="Texte suivant">&#8594;</button>
+        </span>
+      `;
+    }
+
+    let currentNavIndex = 0;
+
+    function navToIndex(idx) {
+      const items = textsListUl.querySelectorAll("li");
+      if (!items.length) return;
+      currentNavIndex = (idx + items.length) % items.length;
+      items.forEach((li, i) => li.classList.toggle("texts-list-item--nav-active", i === currentNavIndex));
+      items[currentNavIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
+      // zoom sur la big map si on y est
+      const activeId = items[currentNavIndex].dataset.id;
+      if (document.getElementById("view-mindmap").classList.contains("active")) {
+        centerOnMap(activeId);
+      }
+    }
+
+    document.getElementById("texts-nav-prev")?.addEventListener("click", () => navToIndex(currentNavIndex - 1));
+    document.getElementById("texts-nav-next")?.addEventListener("click", () => navToIndex(currentNavIndex + 1));
   }
 
   /* ---------------- GRANDE CARTE — pan & zoom (déclarations) ---------------- */
@@ -183,38 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
     getVisited().forEach(renderTrailDot);
   }
 
-  /* ---------------- MODE CALIBRATION : placer les points sur la big map ---------------- */
-  const calibrateBtn = document.getElementById("calibrate-btn");
-  let calibrateMode = false;
-  let calibrateTargetId = null;
-
-  function setCalibrateTarget(id) {
-    calibrateTargetId = id;
-    document.querySelectorAll("#texts-list-ul li").forEach(li =>
-      li.classList.toggle("selected", li.dataset.id === id)
-    );
-    const c = CARDS_DATA[id];
-    coordReadout.textContent = `📍 placer : ${c.auteur} — ${c.titre}`;
-  }
-
-  function nextCalibrateTarget() {
-    const idx = CARDS.indexOf(calibrateTargetId);
-    const next = CARDS[(idx + 1) % CARDS.length];
-    setCalibrateTarget(next);
-  }
-
-  if (calibrateBtn) {
-    calibrateBtn.addEventListener("click", () => {
-      calibrateMode = !calibrateMode;
-      calibrateBtn.classList.toggle("active", calibrateMode);
-      if (calibrateMode) {
-        setCalibrateTarget(CARDS[0]);
-      } else {
-        document.querySelectorAll("#texts-list-ul li.selected").forEach(li => li.classList.remove("selected"));
-        coordReadout.textContent = "x: 00 · y: 00";
-      }
-    });
-  }
+  const calibrateMode = false; // mode calibration désactivé
 
   function openCard(id) {
     markVisited(id);
@@ -377,10 +408,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="flip-card">
             <div class="flip-inner">
               <div class="flip-face flip-front">
-                <img src="${c.image}" alt="${c.titre} — diagramme">
+                <img src="${c.image}" alt="${c.titre} — diagramme" loading="lazy" decoding="async">
               </div>
               <div class="flip-face flip-back">
-                <img src="assets/images/cards/${id}-text.png" alt="${c.titre} — verso">
+                <img src="assets/images/cards/${id}-text.png" alt="${c.titre} — verso" loading="lazy" decoding="async">
               </div>
             </div>
           </div>
@@ -421,21 +452,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   viewport.addEventListener("pointerdown", (e) => {
     if (e.target.closest(".map-hotspot")) return; // laisser le clic du hotspot passer
-
-    if (calibrateMode) {
-      const rect = viewport.getBoundingClientRect();
-      const stageX = (e.clientX - rect.left - x) / scale;
-      const stageY = (e.clientY - rect.top  - y) / scale;
-      const pctLeft = Math.max(0, Math.min(100, (stageX / STAGE_W) * 100));
-      const pctTop  = Math.max(0, Math.min(100, (stageY / (STAGE_W * 0.706)) * 100));
-      CARD_HOTSPOTS[calibrateTargetId] = { top: +pctTop.toFixed(1), left: +pctLeft.toFixed(1) };
-      const overrides = loadHotspotOverrides();
-      overrides[calibrateTargetId] = CARD_HOTSPOTS[calibrateTargetId];
-      saveHotspotOverrides(overrides);
-      renderHotspots();
-      nextCalibrateTarget();
-      return; // pas de pan en mode calibration
-    }
 
     viewport.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -491,6 +507,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }, { passive: false });
 
   renderHotspots();
+
+  // ---- flèches prev / next sur la big map (parcours des hotspots) ----
+  const hotspotIds = CARDS.filter(id => !!CARD_HOTSPOTS[id]);
+  let currentHotspotIndex = 0;
+
+  function goToHotspot(idx) {
+    if (!hotspotIds.length) return;
+    currentHotspotIndex = (idx + hotspotIds.length) % hotspotIds.length;
+    const id = hotspotIds[currentHotspotIndex];
+    centerOnMap(id);
+    // sync highlight dans la liste
+    document.querySelectorAll("#texts-list-ul li").forEach(li => {
+      li.classList.toggle("texts-list-item--nav-active", li.dataset.id === id);
+    });
+    const activeLi = document.querySelector(`#texts-list-ul li[data-id="${id}"]`);
+    if (activeLi) activeLi.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  document.getElementById("hotspot-prev")?.addEventListener("click", () => goToHotspot(currentHotspotIndex - 1));
+  document.getElementById("hotspot-next")?.addEventListener("click", () => goToHotspot(currentHotspotIndex + 1));
 
   const mmImage = document.getElementById("mindmap-image");
   if (mmImage.complete) resetView();
