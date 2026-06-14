@@ -109,13 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // On les injecte dans l'en-tête .texts-list-title
     const textsListTitle = document.querySelector(".texts-list-title");
     if (textsListTitle) {
-      textsListTitle.innerHTML = `
-        Textes
-        <span class="texts-list-nav">
-          <button class="texts-list-nav-btn" id="texts-nav-prev" aria-label="Texte précédent">&#8592;</button>
-          <button class="texts-list-nav-btn" id="texts-nav-next" aria-label="Texte suivant">&#8594;</button>
-        </span>
-      `;
+      textsListTitle.innerHTML = `Textes`;
     }
 
     let currentNavIndex = 0;
@@ -140,7 +134,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------------- GRANDE CARTE — pan & zoom (déclarations) ---------------- */
   const viewport = document.getElementById("mindmap-viewport");
   const stage    = document.getElementById("mindmap-stage");
-  const resetBtn = document.getElementById("mindmap-reset");
+  const resetBtn       = document.getElementById("mindmap-reset");
+  const mobileResetBtn = document.getElementById("mobile-reset");
   const zoomIn   = document.getElementById("zoom-in");
   const zoomOut  = document.getElementById("zoom-out");
 
@@ -419,6 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------------- GRANDE CARTE — pan & zoom (listeners) ---------------- */
   resetBtn.addEventListener("click", resetView);
+  mobileResetBtn?.addEventListener("click", resetView);
   window.addEventListener("resize", resetView);
 
   zoomIn.addEventListener("click", () => {
@@ -594,6 +590,10 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("hotspot-next")?.addEventListener("click", () => goToHotspot(currentHotspotIndex + 1));
   document.getElementById("sidebar-prev")?.addEventListener("click", () => goToHotspot(currentHotspotIndex - 1));
   document.getElementById("sidebar-next")?.addEventListener("click", () => goToHotspot(currentHotspotIndex + 1));
+  document.getElementById("mobile-prev")?.addEventListener("click", () => goToHotspot(currentHotspotIndex - 1));
+  document.getElementById("mobile-next")?.addEventListener("click", () => goToHotspot(currentHotspotIndex + 1));
+  document.getElementById("mobile-zoom-in")?.addEventListener("click", () => { const r = viewport.getBoundingClientRect(); zoomAt(1.25, r.width/2, r.height/2); });
+  document.getElementById("mobile-zoom-out")?.addEventListener("click", () => { const r = viewport.getBoundingClientRect(); zoomAt(0.8, r.width/2, r.height/2); });
 
   // ---- navigation clavier sur la big map ----
   document.addEventListener("keydown", (e) => {
@@ -623,13 +623,13 @@ document.addEventListener("DOMContentLoaded", () => {
   mmImage.addEventListener("load", resetView);
   resetView();
 
-  /* ---------------- BOUTON AUDIO DESCRIPTION ---------------- */
   const audioBtn = document.getElementById("audio-btn");
   const sidebarAudio = document.getElementById("sidebar-audio");
+  const mobileAudio = document.getElementById("mobile-audio");
   let audioPlayer = null;
 
   function toggleAudio(btn) {
-    const allBtns = [audioBtn, sidebarAudio].filter(Boolean);
+    const allBtns = [audioBtn, sidebarAudio, mobileAudio].filter(Boolean);
     if (btn.classList.contains("playing")) {
       audioPlayer.pause();
       audioPlayer.currentTime = 0;
@@ -650,5 +650,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   audioBtn?.addEventListener("click", () => toggleAudio(audioBtn));
   sidebarAudio?.addEventListener("click", () => toggleAudio(sidebarAudio));
+  mobileAudio?.addEventListener("click", () => toggleAudio(mobileAudio));
 
 });

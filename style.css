@@ -495,9 +495,8 @@ button {
 .texts-list {
   flex-shrink: 0;
   border-top: 1px solid var(--line);
-  padding: 14px 16px 24px;
+  padding: 10px 14px 16px;
   background: var(--paper-2);
-  max-height: 38vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -509,9 +508,10 @@ button {
   overflow: hidden;
 }
 
-/* mobile : carte en haut, liste en bas */
-.mindmap-body .mindmap-viewport { order: 1; }
-.mindmap-body .texts-list        { order: 2; }
+/* mobile : carte + barre nav + liste = 65 / 35 */
+.mindmap-body .mindmap-viewport    { order: 1; flex: 1 1 65%; min-height: 0; }
+.mindmap-body .mindmap-mobile-nav  { order: 2; flex-shrink: 0; }
+.mindmap-body .texts-list          { order: 3; flex: 0 0 28%; min-height: 0; overflow-y: auto; }
 
 /* ---- layout desktop : liste gauche / carte droite ---- */
 @media (min-width: 768px) {
@@ -906,78 +906,76 @@ button {
 }
 
 /* ============================================================
-   MIND MAP HEADER — barre de contrôles compacte
+   MIND MAP — contrôles
    ============================================================ */
-.mindmap-header {
-  justify-content: center;
-  gap: 0;
-  padding: 10px 16px;
-  position: relative;
-}
-
-/* flèche retour cachée sur mobile, visible sur desktop */
-.mindmap-back-desktop {
-  display: none;
-}
-
-.mindmap-header-spacer {
-  display: none;
+/* ====== BARRE NAV MOBILE entre carte et liste ====== */
+.mindmap-mobile-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-shrink: 0;
+  order: 2;
+  padding: 8px 16px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-2);
 }
 
 @media (min-width: 768px) {
-  .mindmap-back-desktop {
-    display: flex;
-    position: absolute;
-    left: 16px;
-  }
-  .mindmap-header-spacer {
-    display: block;
-    width: 36px;
-  }
+  .mindmap-mobile-nav { display: none; }
 }
 
-/* audio bouton — coin droit absolu */
-.map-audio-btn {
-  position: absolute;
-  right: 16px;
-}
-
-/* pilule centrale groupant tous les contrôles */
-.mindmap-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: var(--paper-2);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 4px 6px;
-  box-shadow: 0 1px 6px rgba(46,51,166,.07);
-}
-
-.map-ctrl-btn {
-  width: 32px;
-  height: 32px;
+.mobile-nav-btn {
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 17px;
+  font-size: 20px;
   font-family: var(--mono);
   color: var(--ink);
+  border: 1px solid var(--line);
   border-radius: 50%;
-  border: none;
-  background: none;
-  transition: background .15s var(--ease), color .15s var(--ease);
+  background: var(--paper-2);
   cursor: pointer;
+  transition: background .15s var(--ease), color .15s var(--ease);
   flex-shrink: 0;
 }
 
-.map-ctrl-btn:active,
-.map-ctrl-btn.playing {
+.mobile-nav-btn:active {
   background: var(--accent);
   color: var(--paper-2);
+  border-color: var(--accent);
 }
 
-/* sidebar nav desktop — entre la liste et la carte */
+/* bouton audio en overlay haut droit du viewport */
+.viewport-audio-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 15;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink);
+  box-shadow: 0 1px 6px rgba(46,51,166,.1);
+  cursor: pointer;
+  transition: background .15s var(--ease), color .15s var(--ease);
+}
+
+.viewport-audio-btn:active,
+.viewport-audio-btn.playing {
+  background: var(--accent);
+  color: var(--paper-2);
+  border-color: var(--accent);
+}
+
+/* sidebar desktop — reste inchangée */
 .mindmap-sidebar {
   display: none;
 }
