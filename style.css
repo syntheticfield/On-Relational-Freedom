@@ -408,13 +408,15 @@ button {
 
 .path-trace-line {
   stroke: var(--accent);
-  stroke-width: 2;
-  stroke-dasharray: 6 6;
+  stroke-width: 1;
+  stroke-dasharray: 4 6;
   fill: none;
+  opacity: .6;
 }
 
 .path-trace-dot {
   fill: var(--accent);
+  opacity: .8;
 }
 
 
@@ -659,10 +661,20 @@ button {
 }
 
 @media (min-width: 640px) {
-  .cards-grid { grid-template-columns: repeat(2, 1fr); max-width: 1100px; margin: 0 auto; gap: 28px; }
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+    padding: 24px 28px 60px;
+  }
 }
 @media (min-width: 1000px) {
-  .cards-grid { grid-template-columns: repeat(2, 1fr); max-width: 1500px; gap: 36px; }
+  .cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1600px;
+    margin: 0 auto;
+    gap: 40px;
+    padding: 32px 48px 80px;
+  }
 }
 
 
@@ -825,4 +837,32 @@ button {
   padding-bottom: calc(8vh + 56px);
 }
 
-/* play view removed */
+/* bouton audio description */
+.audio-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink);
+  transition: background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+  flex-shrink: 0;
+}
+
+.audio-btn:active,
+.audio-btn.playing {
+  background: var(--accent);
+  color: var(--paper-2);
+  border-color: var(--accent);
+}
+
+.audio-btn.playing svg path:last-child {
+  animation: audio-pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes audio-pulse {
+  from { opacity: .2; }
+  to   { opacity: .9; }
+}

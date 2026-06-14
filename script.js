@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
     kropotkine: { top: 71.8, left: 56.5 },
 
     // non identifié sur le diagramme fourni — placeholder, à ajuster avec 📍
-    morin:      { top: 76.6, left: 64.6 },
+    morin:      { top: 62.0, left: 63.0},
   };
 
   const HOTSPOTS_KEY = "onfreedom_hotspot_positions";
@@ -261,8 +261,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // dessine une ligne pointillée animée depuis le hotspot cliqué jusqu'au
-  // bord de l'écran, façon "scan" / trace de circuit, avant de changer de vue
+  // ligne pointillée fine qui descend verticalement depuis la bulle
+  // jusqu'au bas de l'écran, puis la vue bascule
   function traceCardPath(pos, onDone, direction = "out") {
     const rect = viewport.getBoundingClientRect();
     const stageX = (pos.left / 100) * STAGE_W;
@@ -270,21 +270,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const hotX = x + stageX * scale;
     const hotY = y + stageY * scale;
 
-    let startX, startY, endX, endY;
-    if (direction === "in") {
-      startX = 0; startY = hotY;
-      endX = hotX; endY = hotY;
-    } else {
-      startX = hotX; startY = hotY;
-      endX = rect.width; endY = hotY;
-    }
+    const startX = hotX;
+    const startY = direction === "in" ? rect.height : hotY;
+    const endX   = hotX;
+    const endY   = direction === "in" ? hotY : rect.height;
+    const dist   = Math.abs(endY - startY);
 
     const overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     overlay.setAttribute("class", "path-trace-overlay");
     overlay.setAttribute("width", rect.width);
     overlay.setAttribute("height", rect.height);
-
-    const dist = Math.hypot(endX - startX, endY - startY);
 
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
     line.setAttribute("x1", startX);
@@ -292,31 +287,32 @@ document.addEventListener("DOMContentLoaded", () => {
     line.setAttribute("x2", endX);
     line.setAttribute("y2", endY);
     line.setAttribute("class", "path-trace-line");
-    line.style.strokeDasharray = dist;
+    line.style.strokeDasharray = "4 6";
     line.style.strokeDashoffset = dist;
 
     const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     dot.setAttribute("cx", startX);
     dot.setAttribute("cy", startY);
-    dot.setAttribute("r", 4);
+    dot.setAttribute("r", 3);
     dot.setAttribute("class", "path-trace-dot");
 
     overlay.appendChild(line);
     overlay.appendChild(dot);
     viewport.appendChild(overlay);
 
-    // déclenche l'animation au prochain frame
+    const duration = Math.min(500, 200 + dist * 0.4);
+
     requestAnimationFrame(() => {
-      line.style.transition = "stroke-dashoffset .45s linear";
+      line.style.transition = `stroke-dashoffset ${duration}ms linear`;
       line.style.strokeDashoffset = "0";
-      dot.style.transition = `transform .45s linear`;
-      dot.style.transform = `translate(${endX - startX}px, ${endY - startY}px)`;
+      dot.style.transition = `transform ${duration}ms linear`;
+      dot.style.transform = `translate(0px, ${endY - startY}px)`;
     });
 
     setTimeout(() => {
       overlay.remove();
       if (onDone) onDone();
-    }, 460);
+    }, duration + 20);
   }
 
   /* ---------------- COMPTEUR DE COORDONNÉES ---------------- */
@@ -532,5 +528,31 @@ document.addEventListener("DOMContentLoaded", () => {
   if (mmImage.complete) resetView();
   mmImage.addEventListener("load", resetView);
   resetView();
+
+  /* ---------------- BOUTON AUDIO DESCRIPTION ---------------- */
+  // Pour activer : déposer le fichier dans assets/audio/description.mp3
+  const audioBtn = document.getElementById("audio-btn");
+  let audioPlayer = null;
+
+  if (audioBtn) {
+    audioBtn.addEventListener("click", () => {
+      if (audioBtn.classList.contains("playing")) {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+        audioPlayer = null;
+        audioBtn.classList.remove("playing");
+      } else {
+        audioPlayer = new Audio("assets/audio/description.mp3");
+        audioPlayer.addEventListener("ended", () => {
+          audioBtn.classList.remove("playing");
+          audioPlayer = null;
+        });
+        audioPlayer.play().catch(() => {
+          console.info("Audio non disponible — déposez le fichier dans assets/audio/description.mp3");
+        });
+        audioBtn.classList.add("playing");
+      }
+    });
+  }
 
 });
