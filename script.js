@@ -434,7 +434,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function getMidpoint(p1, p2) { return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 }; }
 
   viewport.addEventListener("pointerdown", (e) => {
-    if (e.target.closest(".map-hotspot")) return; // laisser le clic du hotspot passer
+    if (e.target.closest(".map-hotspot")) return;
+    if (e.target.closest(".viewport-audio-btn")) return; // laisser le bouton audio fonctionner
 
     e.preventDefault(); // bloque le double-tap zoom natif
     viewport.setPointerCapture(e.pointerId);
@@ -649,12 +650,13 @@ document.addEventListener("DOMContentLoaded", () => {
       allBtns.forEach(b => b.classList.remove("playing"));
     } else {
       audioPlayer = new Audio("assets/audio/description.mp3");
+      console.log("Audio src:", audioPlayer.src);
       audioPlayer.addEventListener("ended", () => {
         allBtns.forEach(b => b.classList.remove("playing"));
         audioPlayer = null;
       });
-      audioPlayer.play().catch(() => {
-        console.info("Audio non disponible — déposez le fichier dans assets/audio/description.mp3");
+      audioPlayer.play().catch((err) => {
+        console.error("Audio error:", err);
       });
       allBtns.forEach(b => b.classList.add("playing"));
     }
