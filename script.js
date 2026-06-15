@@ -586,12 +586,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (activeLi) {
       const list = document.getElementById("texts-list");
       if (list) {
-        const liTop    = activeLi.offsetTop;
-        const liBottom = liTop + activeLi.offsetHeight;
-        const visible  = list.scrollTop + list.clientHeight;
-        if (liTop < list.scrollTop || liBottom > visible) {
-          list.scrollTo({ top: liTop - list.clientHeight / 2 + activeLi.offsetHeight / 2, behavior: "smooth" });
-        }
+        // offsetTop relatif au container scrollable
+        let offsetTop = 0;
+        let el = activeLi;
+        while (el && el !== list) { offsetTop += el.offsetTop; el = el.offsetParent; }
+        list.scrollTo({ top: offsetTop - list.clientHeight / 2 + activeLi.offsetHeight / 2, behavior: "smooth" });
       } else {
         activeLi.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
