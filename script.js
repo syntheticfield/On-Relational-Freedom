@@ -583,7 +583,19 @@ document.addEventListener("DOMContentLoaded", () => {
       li.classList.toggle("texts-list-item--nav-active", li.dataset.id === toId);
     });
     const activeLi = document.querySelector(`#texts-list-ul li[data-id="${toId}"]`);
-    if (activeLi) activeLi.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (activeLi) {
+      const list = document.getElementById("texts-list");
+      if (list) {
+        const liTop    = activeLi.offsetTop;
+        const liBottom = liTop + activeLi.offsetHeight;
+        const visible  = list.scrollTop + list.clientHeight;
+        if (liTop < list.scrollTop || liBottom > visible) {
+          list.scrollTo({ top: liTop - list.clientHeight / 2 + activeLi.offsetHeight / 2, behavior: "smooth" });
+        }
+      } else {
+        activeLi.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
   }
 
   document.getElementById("hotspot-prev")?.addEventListener("click", () => goToHotspot(currentHotspotIndex - 1));

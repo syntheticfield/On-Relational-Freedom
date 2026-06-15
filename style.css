@@ -508,10 +508,10 @@ button {
   overflow: hidden;
 }
 
-/* mobile : carte + barre nav + liste = 65 / 35 */
-.mindmap-body .mindmap-viewport    { order: 1; flex: 1 1 65%; min-height: 0; }
+/* mobile : carte + barre nav + liste = 55 / 45 */
+.mindmap-body .mindmap-viewport    { order: 1; flex: 1 1 55%; min-height: 0; }
 .mindmap-body .mindmap-mobile-nav  { order: 2; flex-shrink: 0; }
-.mindmap-body .texts-list          { order: 3; flex: 0 0 28%; min-height: 0; overflow-y: auto; }
+.mindmap-body .texts-list          { order: 3; flex: 0 0 38%; min-height: 0; overflow-y: auto; }
 
 /* ---- layout desktop : liste gauche / carte droite ---- */
 @media (min-width: 768px) {
