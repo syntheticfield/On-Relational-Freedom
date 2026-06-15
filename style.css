@@ -499,6 +499,7 @@ button {
   background: var(--paper-2);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .mindmap-body {
@@ -915,10 +916,11 @@ button {
   justify-content: space-around;
   flex-shrink: 0;
   order: 2;
-  padding: 8px 16px;
+  padding: 8px 4px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   background: var(--paper-2);
+  touch-action: manipulation;
 }
 
 @media (min-width: 768px) {
@@ -938,6 +940,7 @@ button {
   border-radius: 50%;
   background: var(--paper-2);
   cursor: pointer;
+  touch-action: manipulation;
   transition: background .15s var(--ease), color .15s var(--ease);
   flex-shrink: 0;
 }

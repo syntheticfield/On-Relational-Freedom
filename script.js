@@ -436,6 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
   viewport.addEventListener("pointerdown", (e) => {
     if (e.target.closest(".map-hotspot")) return; // laisser le clic du hotspot passer
 
+    e.preventDefault(); // bloque le double-tap zoom natif
     viewport.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     viewport.classList.add("grabbing");
