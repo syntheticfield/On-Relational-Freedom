@@ -127,7 +127,7 @@ const CARDS_DATA = {
 
   blanc: {
     id: "blanc",
-    auteur: "Johana Blanc",
+    auteur: "jo·hana blanc",
     titre: "The Deserters",
     annee: "2023",
     motsClefs: ["Art", "Collectif", "Ego", "Féminisme"],
